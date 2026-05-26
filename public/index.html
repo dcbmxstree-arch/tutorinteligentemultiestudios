@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>MULTIESTUDIOS | Tutor Inteligente – Policía Nacional del Ecuador</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',Tahoma,sans-serif; background:#f4f6f9; color:#333; }
+
+    /* ── Acceso ── */
+    .access-screen {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:100vh; background:linear-gradient(135deg,#004d40,#00695c); padding:2rem 1rem 5rem;
+    }
+    .access-card {
+      background:#fff; padding:2.5rem 2rem 2rem; border-radius:1.2rem;
+      box-shadow:0 20px 40px rgba(0,0,0,.3); text-align:center; width:90%; max-width:500px;
+    }
+    .access-card h1 { color:#004d40; font-size:2.4rem; letter-spacing:1px; margin-bottom:.2rem; }
+    .access-card .sub { color:#00695c; font-weight:600; margin-bottom:.4rem; }
+    .access-card .lema { color:#555; font-style:italic; font-size:.85rem; border-top:1px solid #ddd; padding-top:.7rem; margin-bottom:1.8rem; }
+    .access-card select, .access-card input {
+      width:100%; padding:.8rem; margin-bottom:1rem; border:1px solid #ccc;
+      border-radius:.5rem; font-size:1rem;
+    }
+    .access-card optgroup { font-weight:700; color:#004d40; }
+
+    /* ── Botones ── */
+    .btn {
+      background:#004d40; color:#fff; border:none; padding:.8rem 1.5rem;
+      border-radius:.5rem; font-size:1rem; cursor:pointer; transition:background .3s;
+      width:100%; margin-top:.5rem;
+    }
+    .btn:hover { background:#00695c; }
+    .btn.secondary { background:#607d8b; }
+    .btn.secondary:hover { background:#455a64; }
+    .btn.gold { background:#c9a84c; color:#004d40; font-weight:700; }
+    .btn.gold:hover { background:#d4af5e; }
+    .btn.danger { background:#b71c1c; }
+    .btn.danger:hover { background:#c62828; }
+
+    .error-msg { color:#c62828; margin-top:.5rem; font-weight:700; }
+    .footer-note { margin-top:1.8rem; font-size:.7rem; color:#aaa; border-top:1px solid #eee; padding-top:1rem; }
+
+    /* ── Panel principal ── */
+    .main-panel { display:none; padding:2rem; max-width:1100px; margin:0 auto 5rem; }
+    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:.5rem; }
+    .header h2 { color:#004d40; }
+    .section { background:#fff; border-radius:.8rem; padding:1.8rem; margin-bottom:2rem; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    .section h3 { color:#004d40; margin-bottom:1rem; border-bottom:2px solid #004d40; padding-bottom:.4rem; }
+    .temario-list { max-height:380px; overflow-y:auto; background:#fafafa; border-radius:.4rem; padding:.3rem; }
+    .temario-item { padding:.7rem; border-bottom:1px solid #e0e0e0; }
+    .temario-item:hover { background:#e0f2f1; }
+    textarea { width:100%; height:200px; padding:.8rem; border:1px solid #ccc; border-radius:.5rem; resize:vertical; font-size:.95rem; }
+    pre { white-space:pre-wrap; background:#f5f5f5; padding:1rem; border-radius:.5rem; font-size:.9rem; }
+    .loading { text-align:center; color:#004d40; margin:1rem 0; }
+    .btn-group { display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem; }
+    .btn-group .btn { width:auto; }
+
+    /* ── Tabs de módulos ── */
+    .tabs { display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .tab-btn {
+      padding:.5rem 1.2rem; border-radius:.5rem; border:2px solid #004d40;
+      background:#fff; color:#004d40; font-weight:600; cursor:pointer; transition:all .2s;
+    }
+    .tab-btn.active { background:#004d40; color:#fff; }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* ── Modal ── */
+    .modal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.65); z-index:2000; align-items:center; justify-content:center;
+    }
+    .modal-content {
+      background:#fff; border-radius:1rem; padding:2rem; max-width:720px; width:92%;
+      max-height:85vh; overflow-y:auto; position:relative;
+    }
+    .modal-content h3 { color:#004d40; margin-bottom:1rem; }
+    .close-modal {
+      position:absolute; top:1rem; right:1.2rem; font-size:1.6rem;
+      cursor:pointer; color:#555; background:none; border:none;
+    }
+
+    /* ── Generador de informes ── */
+    .informe-grid { display:grid; grid-template-columns:1fr 1.4fr; gap:1.5rem; }
+    @media(max-width:700px){ .informe-grid { grid-template-columns:1fr; } }
+    .output-area {
+      background:#f8f9fa; border:1px solid #dee2e6; border-radius:.6rem;
+      padding:1rem; max-height:520px; overflow-y:auto;
+      white-space:pre-wrap; font-family:'Courier New',monospace; font-size:.82rem;
+    }
+    .loader {
+      border:4px solid #eee; border-top:4px solid #004d40; border-radius:50%;
+      width:36px; height:36px; animation:spin 1s linear infinite; margin:1rem auto;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .informe-actions { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.8rem; }
+    .informe-actions .btn { width:auto; padding:.5rem 1rem; font-size:.85rem; }
+
+    /* ── WhatsApp y footer ── */
+    .whatsapp-float {
+      position:fixed; bottom:70px; right:20px; background:#25D366; color:#fff;
+      width:58px; height:58px; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,.3);
+      z-index:900; text-decoration:none; transition:transform .2s;
+    }
+    .whatsapp-float:hover { transform:scale(1.1); background:#128C7E; }
+    .footer-bar {
+      position:fixed; bottom:0; width:100%; background:#004d40; color:#fff;
+      text-align:center; padding:.55rem; font-size:.82rem; z-index:800;
+    }
+
+    /* ── Badge de área ── */
+    .area-badge {
+      display:inline-block; background:#e0f2f1; color:#00695c;
+      font-size:.78rem; font-weight:700; padding:.2rem .7rem; border-radius:1rem;
+      margin-bottom:.5rem; border:1px solid #b2dfdb;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     WHATSAPP + FOOTER
+══════════════════════════════════════════════════════════════════════ -->
+<a href="https://wa.me/593996328491" class="whatsapp-float" target="_blank" title="WhatsApp">💬</a>
+<div class="footer-bar">Powered by Physics – 0995324419 &nbsp;|&nbsp; © 2026 Multiestudios</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODAL MUESTRA
+══════════════════════════════════════════════════════════════════════ -->
+<div id="modalMuestra" class="modal">
+  <div class="modal-content">
+    <button class="close-modal" id="closeModalBtn">&times;</button>
+    <h3 id="muestraTitulo">Caso Práctico de Muestra</h3>
+    <div id="muestraContent"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     PANTALLA DE ACCESO
+══════════════════════════════════════════════════════════════════════ -->
+<div id="accessScreen" class="access-screen">
+  <div class="access-card">
+    <h1>MULTIESTUDIOS</h1>
+    <p class="sub">Centro de Educación Continua</p>
+    <p class="lema">Tutor Inteligente para Postulantes a Especialistas de la Policía Nacional del Ecuador</p>
+    <input type="text" id="cedulaInput" placeholder="Número de cédula" />
+    <select id="carreraSelect">
+      <option value="">— Seleccione su carrera —</option>
+    </select>
+    <button class="btn" id="btnIngresar">Ingresar</button>
+    <button class="btn gold" id="btnMuestra">📋 Ver caso práctico de muestra</button>
+    <div id="loginError" class="error-msg"></div>
+    <div class="footer-note">Powered by Physics – 0995324419 | © 2026</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     PANEL PRINCIPAL
+══════════════════════════════════════════════════════════════════════ -->
+<div id="mainPanel" class="main-panel">
+  <div class="header">
+    <div>
+      <div id="areaBadge" class="area-badge"></div>
+      <h2>Panel del Aspirante – <span id="careerDisplay"></span></h2>
+    </div>
+    <button class="btn danger" id="btnLogout" style="width:auto;padding:.5rem 1.2rem;">Cerrar sesión</button>
+  </div>
+
+  <!-- ── Tabs de módulos ── -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tabTutor">📚 Tutor de Casos</button>
+    <button class="tab-btn" data-tab="tabInformes">📄 Generador de Informes</button>
+  </div>
+
+  <!-- ══ TAB 1: TUTOR ══ -->
+  <div id="tabTutor" class="tab-pane active">
+
+    <div class="section">
+      <h3>Temario de 50 temas – <span id="careerTemarioTitle"></span></h3>
+      <input type="text" id="searchTema" placeholder="Buscar tema…"
+             style="width:100%;padding:.5rem;margin-bottom:.5rem;"
+             oninput="App.filterTemas()" />
+      <div id="temarioContainer" class="temario-list"></div>
+    </div>
+
+    <div class="section">
+      <h3>Caso Práctico</h3>
+      <div id="caseContent">Presione "Crear caso práctico" para comenzar.</div>
+      <div class="btn-group">
+        <button class="btn" id="btnCasoBanco">Crear caso práctico (banco)</button>
+        <button class="btn secondary" id="btnCasoIA">Nuevo caso con IA</button>
+      </div>
+      <div id="caseLoading" class="loading" style="display:none;">⏳ Generando caso, por favor espere…</div>
+    </div>
+
+    <div class="section">
+      <h3>Tu Respuesta</h3>
+      <textarea id="userAnswer" placeholder="Escribe aquí tu respuesta técnica detallada…"></textarea>
+    </div>
+
+    <div class="section">
+      <h3>Solución y Retroalimentación</h3>
+      <div class="btn-group">
+        <button class="btn" id="btnVerRespuesta">Ver respuesta técnica</button>
+        <button class="btn secondary" id="btnRevisar">Revisar mi respuesta (IA)</button>
+      </div>
+      <div id="modelAnswerBox" style="display:none;margin-top:1rem;">
+        <h4>Respuesta técnica:</h4>
+        <div id="modelAnswerContent"></div>
+      </div>
+      <div id="feedbackBox" style="display:none;margin-top:1rem;">
+        <h4>Evaluación de tu respuesta:</h4>
+        <div id="feedbackContent"></div>
+      </div>
+      <div id="feedbackLoading" class="loading" style="display:none;">⏳ Analizando tu respuesta…</div>
+    </div>
+
+  </div><!-- /tabTutor -->
+
+  <!-- ══ TAB 2: GENERADOR DE INFORMES ══ -->
+  <div id="tabInformes" class="tab-pane">
+    <div class="section">
+      <h3>Generador de Informe Cognitivo (LaTeX)</h3>
+      <p style="margin-bottom:1rem;color:#555;font-size:.9rem;">
+        Pega el caso práctico y la respuesta técnica. El sistema genera un informe de proceso cognitivo
+        en formato LaTeX listo para compilar en Overleaf.
+      </p>
+      <div class="informe-grid">
+        <!-- Columna izquierda: inputs -->
+        <div>
+          <label style="font-weight:700;display:block;margin-bottom:.4rem;">Caso Práctico:</label>
+          <textarea id="infCaso" rows="9" placeholder="Pega aquí el caso práctico…"></textarea>
+          <label style="font-weight:700;display:block;margin:.8rem 0 .4rem;">Respuesta Técnica:</label>
+          <textarea id="infRespuesta" rows="9" placeholder="Pega aquí la respuesta técnica…"></textarea>
+          <div class="btn-group" style="margin-top:.8rem;">
+            <button class="btn" id="btnGenInforme">📄 Generar Informe</button>
+            <button class="btn secondary" id="btnLimpiarInforme">🗑 Limpiar</button>
+          </div>
+          <div id="infLoading" class="loading" style="display:none;">
+            <div class="loader"></div>Generando con IA…
+          </div>
+        </div>
+        <!-- Columna derecha: output -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+            <strong>Código LaTeX:</strong>
+            <div class="informe-actions">
+              <button class="btn secondary" id="btnCopiarLatex">📋 Copiar</button>
+              <button class="btn secondary" id="btnDescargarLatex">⬇ .tex</button>
+              <button class="btn gold" id="btnOverleaf">🔗 Overleaf</button>
+            </div>
+          </div>
+          <div id="infOutput" class="output-area" style="display:none;"></div>
+          <div id="infInitial" style="text-align:center;padding:3rem 1rem;color:#888;">
+            🤖 El informe LaTeX aparecerá aquí una vez generado.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tabInformes -->
+
+</div><!-- /mainPanel -->
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   REGISTRO CENTRAL DE CARRERAS
+   Para añadir una nueva carrera:
+     1. Agregar entrada en CARRERAS["Nombre"] = { area, temario, casoBanco, casoMuestra, promptExtra }
+     2. Agregar usuarios en USUARIOS array
+   ¡Eso es todo! El motor de la app es 100% genérico.
+══════════════════════════════════════════════════════════════════════ */
+
+const CARRERAS = {};
+
+/* ──────────────────────────────────────────────
+   ÁREA DE SALUD
+────────────────────────────────────────────── */
+CARRERAS["Medicina General"] = {
+  area: "Salud",
+  temario: [
+    "1. Valoración clínica del detenido: anamnesis, examen físico y registro en historia clínica.",
+    "2. Detección de signos de maltrato físico en personas privadas de libertad.",
+    "3. Manejo del paciente con intoxicación aguda por sustancias psicoactivas en custodia.",
+    "4. Atención de urgencias cardiovasculares en el dispensario policial.",
+    "5. Crisis asmática y EPOC: manejo agudo y crónico.",
+    "6. Diabetes mellitus e insulinoterapia: control en pacientes policiales activos.",
+    "7. Infecciones respiratorias agudas en acuartelamientos: diagnóstico y control de brotes.",
+    "8. Enfermedades diarreicas agudas en destacamentos rurales.",
+    "9. Tuberculosis pulmonar: diagnóstico precoz y protocolo de aislamiento.",
+    "10. VIH/SIDA: consejería, prueba voluntaria y manejo en el ámbito laboral.",
+    "11. Hepatitis virales (A, B, C): profilaxis posexposición en personal de riesgo.",
+    "12. Esquemas de vacunación en el adulto: prioridades para el personal policial.",
+    "13. Cadena de frío en el manejo de vacunas e insumos biológicos.",
+    "14. Salud sexual y reproductiva: anticoncepción y prevención de ITS.",
+    "15. Control prenatal básico en esposas de policías o personal femenino.",
+    "16. Atención del recién nacido en parto extrahospitalario.",
+    "17. Emergencias obstétricas: preeclampsia y hemorragia postparto en entorno táctico.",
+    "18. Atención inicial del politraumatizado: protocolo XABCDE.",
+    "19. Manejo del dolor torácico agudo en entorno prehospitalario.",
+    "20. Reanimación cardiopulmonar básica y avanzada según guías AHA 2020.",
+    "21. Uso del DEA y manejo de arritmias mortales.",
+    "22. Triaje START en incidentes con múltiples víctimas.",
+    "23. Quemaduras térmicas y químicas: clasificación, tratamiento y criterios de traslado.",
+    "24. Lesiones por onda expansiva (blast injuries): fisiopatología y abordaje.",
+    "25. Intoxicación por monóxido de carbono en espacios confinados.",
+    "26. Golpe de calor y enfermedades por estrés térmico en patrulleros.",
+    "27. Hipotermia accidental en operativos de altura.",
+    "28. Mordeduras y picaduras de animales ponzoñosos en zonas selváticas.",
+    "29. Atención inicial de heridas por proyectil de arma de fuego (TCCC).",
+    "30. Control de hemorragias masivas: torniquete, agentes hemostáticos.",
+    "31. Manejo de la vía aérea difícil en emergencias extrahospitalarias.",
+    "32. Accesos vasculares periféricos e intraóseos en pacientes críticos.",
+    "33. Fluidoterapia en el paciente en shock hipovolémico o séptico.",
+    "34. Medicina ocupacional: reconocimientos médicos periódicos.",
+    "35. Evaluación de la aptitud física y mental para el servicio activo.",
+    "36. Prevención y manejo de lesiones musculoesqueléticas en el entrenamiento.",
+    "37. Hipoacusia inducida por ruido en instructores de tiro.",
+    "38. Exposición crónica al plomo en polígonos de tiro: monitoreo y manejo.",
+    "39. Trastornos del sueño y fatiga crónica en personal con turnos rotativos.",
+    "40. Síndrome de burnout y estrés postraumático: detección y derivación.",
+    "41. Medicina de desastres: organización de puestos médicos avanzados.",
+    "42. Epidemiología básica: vigilancia y notificación obligatoria de enfermedades.",
+    "43. Promoción de la salud y prevención de enfermedades crónicas.",
+    "44. Uso racional de antibióticos y prevención de resistencia antimicrobiana.",
+    "45. Farmacología esencial en el botiquín del médico policial.",
+    "46. Normativa de contratación pública (LOSNCP) aplicada a medicamentos e insumos.",
+    "47. Historia clínica única: estandarización, confidencialidad y valor legal.",
+    "48. Consentimiento informado: aspectos éticos y jurídicos.",
+    "49. Bioética en la atención de personas privadas de libertad.",
+    "50. Planeación estratégica y administración de servicios de salud policial."
+  ],
+  casoBanco: {
+    enunciado: "Un cadete de 22 años, durante una prueba física en Manabí, presenta confusión, piel caliente y seca, temperatura axilar de 40.2 °C, taquicardia y taquipnea. El instructor sospecha golpe de calor. La temperatura ambiental es de 34 °C y la humedad del 85 %. Usted es el médico de guardia. Aplique la doctrina de autogestión y seguridad operativa.",
+    preguntas: [
+      "1. Realice el diagnóstico presuntivo y describa la fisiopatología del golpe de calor por esfuerzo.",
+      "2. Detalle el manejo inmediato y el plan de enfriamiento activo, incluyendo farmacoterapia si corresponde.",
+      "3. ¿Qué medidas preventivas recomendaría al departamento de entrenamiento, integrando la doctrina de autogestión?"
+    ],
+    solucion: "1. Diagnóstico: golpe de calor por esfuerzo (temperatura ≥40 °C + disfunción neurológica). Fisiopatología: producción metabólica de calor supera la capacidad termorreguladora, saturada por alta humedad; se produce colapso central, fallo multiorgánico, rabdomiólisis y riesgo de CID.\n2. Manejo: retirar al paciente del ambiente, desvestirlo, compresas frías en cuello/axilas/ingles, aspersión de agua fría con ventilación. Suero salino frío IV (20 mL/kg). Monitorizar signos vitales y temperatura c/5-10 min. Diazepam 5-10 mg IV si convulsiones. Traslado hospitalario si no mejora en 30 min.\n3. Prevención: aclimatación progresiva 7-14 días, ejercicios en horas frescas, hidratación cada 20 min, pausas obligatorias, monitoreo del índice WBGT. Autogestión: comité de seguridad que revise protocolos y fomente reporte temprano de síntomas."
+  },
+  casoMuestra: {
+    enunciado: "Un agente de 35 años llega al dispensario policial con dolor precordial opresivo de 20 minutos, irradiado al brazo izquierdo, diaforesis y náusea. Refiere tabaquismo activo y HTA conocida. Usted es el médico de guardia.",
+    preguntas: [
+      "1. ¿Cuál es el diagnóstico más probable y qué estudios solicitaría de forma inmediata?",
+      "2. Describa el manejo inicial en el dispensario policial antes del traslado.",
+      "3. ¿Qué medidas de seguridad operativa aplicaría para el traslado al hospital?"
+    ],
+    solucion: "1. Síndrome coronario agudo (IAM con elevación del ST como primera sospecha). Solicitar ECG de 12 derivaciones de inmediato y troponinas si disponibles.\n2. Reposo, oxígeno si SatO2 <94%, aspirina 325 mg vía oral, nitroglicerina sublingual si PA sistólica >90 mmHg, acceso venoso periférico.\n3. Coordinar traslado en ambulancia con desfibrilador y personal capacitado en RCP, comunicar al hospital receptor el caso de activación de código infarto."
+  },
+  promptExtra: "Enfócate en el contexto clínico policial: dispensarios, patrullajes, destacamentos y custodia de detenidos."
+};
+
+CARRERAS["Enfermería"] = {
+  area: "Salud",
+  temario: [
+    "1. Protocolo XABCDE y control de hemorragias masivas con torniquete en entorno policial.",
+    "2. Reanimación cardiopulmonar básica y uso del DEA en unidades de policía.",
+    "3. Manejo de la vía aérea y ventilación con dispositivos supraglóticos.",
+    "4. Canalización de vía periférica y administración segura de medicamentos IV.",
+    "5. Técnica de administración subcutánea y cuidados en pacientes diabéticos.",
+    "6. Curaciones de heridas por arma de fuego y manejo de infecciones en zonas tácticas.",
+    "7. Empaquetamiento de heridas y uso de agentes hemostáticos (QuikClot, Celox).",
+    "8. Inmovilización y traslado de politraumatizados con tabla espinal.",
+    "9. Atención de quemaduras térmicas y químicas en operativos especiales.",
+    "10. Triaje prehospitalario: método START y categorización de víctimas.",
+    "11. Llenado del Formulario 005 (Evolución) y hoja de signos vitales del MSP.",
+    "12. Registro de constantes vitales y balance hídrico en pacientes críticos.",
+    "13. Manejo de DEA en espacios públicos.",
+    "14. Bioseguridad y manejo de material cortopunzante en centros de salud policial.",
+    "15. Prevención de infecciones asociadas a la atención en salud (IAAS) en calabozos.",
+    "16. Protocolo de lavado de manos y los 5 momentos según OMS.",
+    "17. Administración de vacunas prioritarias al personal policial (cadena de frío).",
+    "18. Responsabilidad ética y legal ante la detección de signos de maltrato en detenidos.",
+    "19. Aplicación de sueroterapia en casos de deshidratación por golpe de calor.",
+    "20. Cuidados de enfermería en intoxicaciones agudas (drogas, alcohol).",
+    "21. Manejo inicial de crisis convulsivas en centros de detención.",
+    "22. Atención de partos de emergencia en unidades policiales móviles.",
+    "23. Protocolos de aislamiento para enfermedades infectocontagiosas en acuartelamientos.",
+    "24. Electrocardiograma básico y reconocimiento de arritmias mortales.",
+    "25. Preparación y administración de medicamentos psicotrópicos bajo prescripción.",
+    "26. Cuidados de la sonda vesical y prevención de infecciones urinarias.",
+    "27. Alimentación enteral y cuidados de la sonda nasogástrica en pacientes postrados.",
+    "28. Prevención de úlceras por presión en pacientes inmovilizados.",
+    "29. Manejo del estrés postraumático en el personal policial: abordaje de enfermería.",
+    "30. Educación para la salud bucal del personal operativo.",
+    "31. Cuidados paliativos en pacientes terminales del Hospital de la Policía.",
+    "32. Organización de brigadas de salud y vacunación en zonas rurales.",
+    "33. Manejo de residuos biológicos y peligrosos en consultorios policiales.",
+    "34. Farmacología básica: interacciones medicamentosas frecuentes en urgencias.",
+    "35. Oxigenoterapia y manejo de concentradores portátiles en patrullas.",
+    "36. Cuidados de estomas y ostomías en pacientes crónicos.",
+    "37. Principios de ergonomía para prevenir lesiones musculoesqueléticas.",
+    "38. Ética en la atención de detenidos: confidencialidad y derechos humanos.",
+    "39. Comunicación efectiva con pacientes agresivos o bajo efectos de sustancias.",
+    "40. Documentación clínica como evidencia judicial: cadena de custodia.",
+    "41. Atención integral al adulto mayor en hogares de acogida policial.",
+    "42. Prevención del consumo de drogas en jóvenes cadetes.",
+    "43. Aplicación de pruebas rápidas (VIH, sífilis, hepatitis) en brigadas de salud.",
+    "44. Manejo de crisis hipertensivas en el dispensario médico policial.",
+    "45. Organización de campañas de vacunación y cadena de frío.",
+    "46. Gestión de insumos y equipos de enfermería bajo la LOSNCP.",
+    "47. Indicadores de calidad en los servicios de enfermería institucional.",
+    "48. Normas de seguridad del paciente en el Hospital de la Policía Nacional.",
+    "49. Trabajo en equipo interdisciplinario.",
+    "50. Liderazgo en enfermería y coordinación de equipos de respuesta rápida."
+  ],
+  casoBanco: {
+    enunciado: "Un servidor policial sufre una herida por proyectil de arma de fuego en la extremidad inferior durante un operativo. Presenta hemorragia masiva y signos de shock hipovolémico. Usted es el enfermero/a de guardia. Integre la doctrina de seguridad operativa y autogestión.",
+    preguntas: [
+      "1. Describa la secuencia del protocolo XABCDE y cómo prioriza la colocación del torniquete.",
+      "2. Detalle la técnica correcta de colocación del torniquete y los cuidados posteriores.",
+      "3. ¿Qué medidas de bioseguridad y registro documental debe adoptar, alineadas con la doctrina de transparencia?"
+    ],
+    solucion: "1. XABCDE: X=control de hemorragia exanguinante con torniquete. A=vía aérea, B=ventilación, C=circulación, D=déficit neurológico, E=exposición. Se prioriza la X para evitar choque hipovolémico.\n2. Técnica: torniquete 5-8 cm proximal a la herida, ajustar hasta cesar sangrado distal, anotar hora en la frente del paciente. No retirar en campo; solo personal médico puede hacerlo. Vigilar síndrome compartimental.\n3. Bioseguridad: guantes, gafas, mascarilla. Registro en Formulario 005: hora del torniquete, signos vitales, fluidos administrados, procedimientos. Autogestión: mantener botiquín táctico surtido y capacitar al personal."
+  },
+  casoMuestra: {
+    enunciado: "Un detenido presenta crisis convulsiva tónico-clónica generalizada en la celda. Usted es la enfermera de guardia en la unidad policial. No hay médico en ese momento.",
+    preguntas: [
+      "1. ¿Cuáles son las acciones inmediatas de enfermería para proteger al paciente?",
+      "2. ¿Qué medicamento administraría y por qué vía, bajo protocolo de enfermería?",
+      "3. ¿Cómo documenta el evento para la continuidad asistencial?"
+    ],
+    solucion: "1. Posición lateral de seguridad, proteger cabeza, retirar objetos, aflojar ropa ajustada, cronometrar la crisis, llamar al médico de guardia.\n2. Diazepam rectal o midazolam intranasal según protocolo institucional, bajo prescripción médica previa o protocolo de enfermería aprobado.\n3. Documentar en Formulario 005: hora de inicio y fin de la crisis, características, intervenciones, signos vitales pre y post, medicación administrada."
+  },
+  promptExtra: "Énfasis en procedimientos de enfermería táctica y cuidado de detenidos."
+};
+
+CARRERAS["Odontología"] = {
+  area: "Salud",
+  temario: [
+    "1. Urgencias odontológicas en destacamentos rurales: manejo del dolor e infecciones.",
+    "2. Exodoncia de piezas retenidas o fracturadas en condiciones limitadas.",
+    "3. Tratamiento de hemorragias postextracción en pacientes con trastornos de coagulación.",
+    "4. Farmacología odontológica: analgésicos y antibióticos en entorno operativo.",
+    "5. Prevención de caries y enfermedad periodontal en personal policial.",
+    "6. Prótesis dentales removibles para efectivos con traumatismos maxilofaciales.",
+    "7. Estomatología: diagnóstico de cáncer oral en estadios tempranos.",
+    "8. Aplicación de flúor y sellantes en campañas de salud bucal para cadetes.",
+    "9. Manejo de infecciones odontogénicas graves (angina de Ludwig).",
+    "10. Cirugía oral menor en consultorios de la Policía: protocolos de asepsia.",
+    "11. Restauraciones estéticas con resina en el sector anterior.",
+    "12. Endodoncia básica para salvar piezas afectadas por caries profunda.",
+    "13. Radioprotección y manejo seguro del equipo de rayos X dental.",
+    "14. Ergonomía odontológica para prevenir lesiones en profesionales asistenciales.",
+    "15. Bioseguridad en odontología: control de infecciones y esterilización.",
+    "16. Atención odontológica a personas privadas de libertad: protocolos de seguridad.",
+    "17. Organización de campañas de fluorización y educación en salud bucal.",
+    "18. Diseño de programas de prevención para unidades tácticas.",
+    "19. Manejo de fracturas mandibulares en primeros auxilios e inmovilización.",
+    "20. Reimplante dental en avulsiones traumáticas por accidentes de tránsito.",
+    "21. Trastornos temporomandibulares y bruxismo en personal sometido a estrés.",
+    "22. Prótesis implantosoportada para efectivos con pérdida dental por trauma.",
+    "23. Interpretación de radiografías panorámicas y cefalométricas.",
+    "24. Anestesia local en odontología: técnicas y complicaciones.",
+    "25. Sedación consciente en procedimientos quirúrgicos ambulatorios.",
+    "26. Consentimiento informado en tratamientos odontológicos y aspectos legales.",
+    "27. Gestión de residuos odontológicos peligrosos (amalgama, biológicos).",
+    "28. Normativa INEN para equipos odontológicos y su fiscalización.",
+    "29. Adquisición de sillones odontológicos y autoclaves bajo la LOSNCP.",
+    "30. Auditoría de servicios odontológicos en la Policía: indicadores de calidad.",
+    "31. Historia clínica odontológica única: estandarización y resguardo.",
+    "32. Ética en la práctica odontológica con población vulnerable.",
+    "33. Odontopediatría en hijos de servidores policiales: atención preventiva.",
+    "34. Periodoncia básica: raspado y alisado radicular en pacientes con gingivitis.",
+    "35. Prótesis parcial removible acrílica para rehabilitación inmediata.",
+    "36. Cirugía de cordales incluidos y complicaciones postoperatorias.",
+    "37. Implantología básica en el Hospital de la Policía: fases y cuidados.",
+    "38. Terapia con láser de baja intensidad en trastornos articulares.",
+    "39. Ortodoncia preventiva e interceptiva en niños y adolescentes.",
+    "40. Manejo de traumatismos dentoalveolares en escenarios de combate.",
+    "41. Odontología deportiva: protectores bucales personalizados.",
+    "42. Planificación estratégica del servicio odontológico institucional.",
+    "43. Atención odontológica domiciliaria a personal herido en cumplimiento del deber.",
+    "44. Diagnóstico y manejo de xerostomía en pacientes polimedicados.",
+    "45. Manejo de alergias a anestésicos locales.",
+    "46. Técnicas de blanqueamiento dental en consultorio.",
+    "47. Uso de antibióticos profilácticos en pacientes con riesgo de endocarditis.",
+    "48. Interpretación de lesiones radiolúcidas y radiopacas frecuentes en maxilares.",
+    "49. Tratamiento de la sensibilidad dentinaria post restauraciones.",
+    "50. Odontología mínimamente invasiva y preservación de tejido dentario."
+  ],
+  casoBanco: {
+    enunciado: "Un servidor policial de 35 años acude al dispensario con dolor intenso en mandíbula inferior derecha, trismus marcado y fiebre de 38.8 °C. Presenta tumefacción dura en el ángulo mandibular y caries profunda en pieza 46. La radiografía muestra lesión periapical. Se sospecha angina de Ludwig. Aplique principios de seguridad operativa.",
+    preguntas: [
+      "1. Describa la fisiopatología de la angina de Ludwig y los criterios de alarma para derivación urgente.",
+      "2. ¿Cuál sería el manejo clínico inmediato en el consultorio odontológico policial?",
+      "3. ¿Qué protocolos de bioseguridad y registro documental debe cumplir durante la atención?"
+    ],
+    solucion: "1. Celulitis rápidamente progresiva de espacios submandibular, sublingual y submentoniano de origen odontogénico. Edema duro, elevación de lengua, disfagia. Alarma: trismus severo, disnea, estridor laríngeo → traslado inmediato.\n2. Antibiótico IV de amplio espectro (penicilina G + metronidazol o clindamicina), analgesia, hidratación, observación continua. Si hay absceso localizado y el odontólogo está capacitado, puede drenar con asepsia estricta.\n3. Barreras de protección, esterilización de instrumental, registro en historia clínica: hallazgos, plan de tratamiento, medicación (dosis/vía/hora), consentimiento informado firmado. Autogestión: protocolos de referencia actualizados y auditorías periódicas."
+  },
+  casoMuestra: {
+    enunciado: "Un cadete de 20 años presenta dolor agudo en el tercer molar inferior derecho. Al examen hay pericoronaritis aguda con celulitis facial inicial. No hay trismus ni fiebre.",
+    preguntas: [
+      "1. ¿Cuál es el tratamiento inmediato de la pericoronaritis aguda?",
+      "2. ¿Qué antibiótico y analgésico prescribiría y por cuántos días?",
+      "3. ¿Cuándo indicaría la exodoncia del cordal?"
+    ],
+    solucion: "1. Irrigación con suero salino del capuchón gingival, destartraje del área, antiséptico local y antiinflamatorio.\n2. Amoxicilina 500 mg c/8h por 5-7 días + ibuprofeno 400 mg c/8h con alimentos.\n3. La exodoncia se indica una vez resuelta la fase aguda (7-10 días), evaluando la posición radiográfica del cordal y la recurrencia del cuadro."
+  },
+  promptExtra: "Énfasis en odontología táctica, bioseguridad y atención en instalaciones policiales."
+};
+
+
+/* ──────────────────────────────────────────────
+   ÁREA SOCIAL
+────────────────────────────────────────────── */
+CARRERAS["Psicología"] = {
+  area: "Social",
+  temario: [
+    "1. Teorías del estrés y afrontamiento en el personal policial.",
+    "2. Prevención del síndrome de burnout en unidades operativas.",
+    "3. Evaluación psicológica del desempeño y aptitud profesional.",
+    "4. Psicología organizacional: clima laboral y cultura institucional.",
+    "5. Liderazgo y motivación en mandos medios.",
+    "6. Selección de personal: entrevista por competencias y pruebas psicométricas.",
+    "7. Psicología de la emergencia: intervención en crisis y primeros auxilios psicológicos.",
+    "8. TEPT en agentes expuestos a incidentes críticos.",
+    "9. Manejo del duelo en compañeros caídos en acto de servicio.",
+    "10. Técnicas de debriefing y defusing tras eventos traumáticos.",
+    "11. Comunicación asertiva en situaciones de alta tensión.",
+    "12. Inteligencia emocional y manejo de la presión operativa.",
+    "13. Psicología positiva y resiliencia: programas de fortalecimiento.",
+    "14. Entrenamiento en habilidades sociales para la atención al ciudadano.",
+    "15. Mediación de conflictos comunitarios: rol del psicólogo policial.",
+    "16. Violencia intrafamiliar: detección y abordaje desde el ámbito policial.",
+    "17. Atención psicológica a víctimas de delitos violentos.",
+    "18. Intervención con menores en situación de riesgo o desprotección.",
+    "19. Psicología del consumo de sustancias: prevención de recaídas.",
+    "20. Programas de prevención del suicidio en centros de detención.",
+    "21. Dinámica de grupos y manejo de equipos multidisciplinarios.",
+    "22. Psicología comunitaria: fortaleciendo la relación policía-sociedad.",
+    "23. Evaluación de clima laboral en destacamentos fronterizos.",
+    "24. Género y diversidad: transversalización en la cultura policial.",
+    "25. Acoso laboral (mobbing): identificación e intervención institucional.",
+    "26. Formación continua: diseño de talleres psicoeducativos.",
+    "27. Ética profesional del psicólogo en el ámbito policial.",
+    "28. Confidencialidad y límites del secreto profesional.",
+    "29. Elaboración de informes psicológicos para uso administrativo.",
+    "30. Análisis de puestos de trabajo desde la psicología ocupacional.",
+    "31. Carga mental y fatiga por compasión en personal de trato directo.",
+    "32. Trastornos del sueño en personal con turnos rotativos.",
+    "33. Psicología del testimonio: factores que afectan la memoria.",
+    "34. Técnicas de entrevista a víctimas sin revictimización.",
+    "35. Percepción social de la policía y estrategias de acercamiento.",
+    "36. Programas de bienestar psicológico para familias de policías.",
+    "37. Jubilación y transición a la vida civil: preparación psicológica.",
+    "38. Adicciones comportamentales: juego patológico y nuevas tecnologías.",
+    "39. Manejo conductual en personas con trastornos mentales en custodia.",
+    "40. Psicología de la negociación en situaciones de rehenes.",
+    "41. Evaluación de riesgos psicosociales en la organización policial.",
+    "42. Supervisión y acompañamiento psicológico a cadetes.",
+    "43. Dinámica del poder y autoridad en la institución policial.",
+    "44. Participación en juntas de selección y tribunales de ascenso.",
+    "45. Diseño de programas de promoción de la salud mental.",
+    "46. Normativa de seguridad y salud en el trabajo (IESS) aplicada a riesgos psicosociales.",
+    "47. Contratación pública de servicios psicológicos (LOSNCP).",
+    "48. Coordinación interinstitucional con el Ministerio de Salud Pública.",
+    "49. Investigación aplicada: lectura crítica de artículos científicos.",
+    "50. Planeación estratégica del departamento de Psicología Institucional."
+  ],
+  casoBanco: {
+    enunciado: "Un agente de 40 años con 18 años de servicio acude al departamento de psicología por insomnio, irritabilidad y desmotivación. Refiere que 'ya no aguanta' el trato con conductores agresivos y las largas jornadas. Su supervisor reporta baja en el rendimiento. Integre la doctrina de autogestión y seguridad operativa.",
+    preguntas: [
+      "1. ¿Qué cuadros clínicos sospecha y qué instrumentos psicométricos utilizaría?",
+      "2. Describa una propuesta de intervención psicológica breve en el contexto policial.",
+      "3. ¿Qué medidas organizacionales recomendaría a la jefatura para prevenir el burnout?"
+    ],
+    solucion: "1. Síndrome de burnout (MBI) y posible trastorno adaptativo mixto (BDI-II + entrevista clínica estructurada). Descartar ideación suicida.\n2. Psicoeducación, respiración diafragmática, reestructuración cognitiva. 8 sesiones semanales. Derivar a psiquiatría si hay depresión mayor. Autocuidado y registro diario de estresores (autogestión).\n3. Rotación de funciones, pausas activas, grupos de apoyo entre pares, capacitación en inteligencia emocional, evaluación periódica de clima laboral. Seguridad operativa: personal con burnout no realiza tareas de alto riesgo sin supervisión."
+  },
+  casoMuestra: {
+    enunciado: "Una agente femenina de 32 años solicita atención psicológica tras haber sido primera respondedora en un atropello masivo. Presenta flashbacks, evitación de patrullajes en la zona y alteraciones del sueño desde hace 3 semanas.",
+    preguntas: [
+      "1. ¿Qué diagnóstico presuntivo plantea y cómo lo diferenciaría de un TEPT establecido?",
+      "2. Describa el plan de intervención en fase aguda.",
+      "3. ¿Qué recomendaciones daría al supervisor para reincorporarla al servicio?"
+    ],
+    solucion: "1. Reacción aguda al estrés / trastorno de estrés agudo (síntomas <4 semanas). Si persisten >1 mes y cumplen criterios: TEPT. Distinguir con la escala PCL-5.\n2. Técnica de defusing individual, psicoeducación sobre reacciones normales al trauma, técnicas de regulación (respiración, grounding).\n3. Reincorporación gradual, inicio en funciones administrativas, seguimiento psicológico quincenal, sensibilización al supervisor sobre estigma del trauma."
+  },
+  promptExtra: "Énfasis en psicología organizacional policial, intervención en crisis y bienestar institucional."
+};
+
+CARRERAS["Psicología Forense"] = {
+  area: "Social",
+  temario: [
+    "1. Introducción a la psicología forense: marco legal en Ecuador.",
+    "2. Evaluación de la imputabilidad en el COIP.",
+    "3. Trastornos mentales y responsabilidad penal.",
+    "4. Simulación y disimulación de síntomas en el contexto forense.",
+    "5. Entrevista clínico-forense: técnicas y protocolos.",
+    "6. Evaluación del riesgo de violencia y reincidencia.",
+    "7. Psicología del testimonio: credibilidad del relato.",
+    "8. Evaluación de la huella psíquica en víctimas de delitos violentos.",
+    "9. Peritaje psicológico en casos de abuso sexual.",
+    "10. Violencia de género: valoración psicológica forense.",
+    "11. Maltrato infantil: indicadores psicológicos y entrevista forense.",
+    "12. Evaluación psicológica en casos de custodia y régimen de visitas.",
+    "13. Perfiles criminales: fundamentos y aplicaciones.",
+    "14. Psicopatía y trastorno antisocial de la personalidad.",
+    "15. Agresores sexuales: evaluación y tipologías.",
+    "16. Psicología del homicidio: motivaciones y dinámica delictiva.",
+    "17. Autopsia psicológica: metodología y aplicación.",
+    "18. Evaluación del daño psicológico en víctimas de tortura.",
+    "19. Trata de personas: intervención psicológica forense.",
+    "20. Menores infractores: evaluación y medidas socioeducativas.",
+    "21. Mediación penal y justicia restaurativa.",
+    "22. El informe pericial psicológico: estructura y contenido.",
+    "23. Ratificación y defensa del informe en audiencia oral.",
+    "24. Ética del perito psicólogo: imparcialidad y objetividad.",
+    "25. Cadena de custodia de la evidencia psicológica.",
+    "26. Interconsulta con medicina legal y trabajo social.",
+    "27. Evaluación psicológica de testigos protegidos.",
+    "28. Psicología del jurado: influencia de sesgos y prejuicios.",
+    "29. Detección del engaño y análisis de contenido basado en criterios.",
+    "30. Evaluación de la competencia para declarar en juicio.",
+    "31. TEPT complejo en víctimas de violencia prolongada.",
+    "32. Evaluación psicológica en casos de acoso laboral con implicaciones legales.",
+    "33. Violencia filio-parental: abordaje forense.",
+    "34. Psicología penitenciaria: clasificación y tratamiento.",
+    "35. Conducción bajo efectos de sustancias: evaluación complementaria.",
+    "36. Responsabilidad profesional del psicólogo forense.",
+    "37. Protocolos internacionales (Estambul, Minnesota) en la valoración forense.",
+    "38. Trabajo con poblaciones indígenas: interculturalidad en la pericia.",
+    "39. Evaluación psicológica en casos de delitos informáticos.",
+    "40. Psicología forense en el ámbito contravencional y de tránsito.",
+    "41. Uso de instrumentos psicométricos en el contexto forense (PAI, MMPI-2).",
+    "42. Elaboración de perfiles victimológicos.",
+    "43. Técnicas de entrevista a agresores.",
+    "44. Evaluación del arrepentimiento y simulación de rehabilitación.",
+    "45. Intervención en crisis en el contexto judicial.",
+    "46. Psicología forense y Derechos Humanos: estándares internacionales.",
+    "47. Jurisprudencia ecuatoriana relevante en peritajes psicológicos.",
+    "48. Coordinación con la Fiscalía y la Defensoría Pública.",
+    "49. Investigación y estadística aplicada a la psicología forense.",
+    "50. Supervisión de casos y desarrollo profesional continuo."
+  ],
+  casoBanco: {
+    enunciado: "Un detenido de 32 años, acusado de homicidio, alega que 'escuchó voces que le ordenaron matar' y que no recuerda los hechos. El juez solicita pericia psicológica para determinar su estado mental al momento del delito y su capacidad procesal actual.",
+    preguntas: [
+      "1. ¿Qué aspectos evaluaría para valorar la imputabilidad según el COIP?",
+      "2. Describa el protocolo de entrevista y las pruebas psicométricas que aplicaría.",
+      "3. ¿Cómo estructuraría el informe pericial para que sea admisible en audiencia oral?"
+    ],
+    solucion: "1. Capacidad de comprender la ilicitud (dimensión cognitiva) y de dirigir la conducta (dimensión volitiva). Indagar trastorno mental grave (esquizofrenia, trastorno delirante). Consultar los artículos vigentes del COIP.\n2. Protocolo: revisión del expediente → entrevista clínico-forense semiestructurada → MMPI-2 (perfil psicopatológico) + PAI + Test de Rey (simulación) → entrevistas colaterales a familiares.\n3. Informe: datos de identificación, motivo de la pericia, metodología, antecedentes, resultados, análisis forense (relación trastorno-delito), conclusiones respondiendo al quesito judicial, firma del perito. Autogestión: planificar plazos y custodiar documentos seguros."
+  },
+  casoMuestra: {
+    enunciado: "Una mujer de 28 años denuncia violencia de género continuada. La Fiscalía solicita evaluación de la huella psíquica para fundamentar la acusación. La peritada refiere amnesia de algunos episodios.",
+    preguntas: [
+      "1. ¿Cómo evaluaría la credibilidad del testimonio y la huella psíquica?",
+      "2. ¿Qué instrumentos utilizaría para cuantificar el daño psicológico?",
+      "3. ¿Cómo redactaría las conclusiones en el informe pericial?"
+    ],
+    solucion: "1. Análisis de Contenido Basado en Criterios (CBCA) y Reality Monitoring para credibilidad. Valoración de síntomas de TEPT, disociación y depresión mediante entrevista clínica.\n2. PCL-5 (TEPT), BDI-II (depresión), Escala de Disociación de Davidson. Documentar coherencia entre relato y sintomatología.\n3. Conclusiones: describir diagnóstico, relación causal con los hechos denunciados, grado de afectación funcional y pronóstico. Usar lenguaje técnico pero comprensible para operadores de justicia."
+  },
+  promptExtra: "Énfasis en peritaje forense, evaluación de imputabilidad y elaboración de informes periciales admisibles en juicio oral ecuatoriano."
+};
+
+CARRERAS["Comunicación Social"] = {
+  area: "Social",
+  temario: [
+    "1. Comunicación institucional en la Policía Nacional: principios y valores.",
+    "2. Manejo de imagen y reputación corporativa.",
+    "3. Redacción de boletines de prensa y comunicados oficiales.",
+    "4. Vocería: técnicas de entrevista y conferencias de prensa.",
+    "5. Relaciones con medios de comunicación: construcción de confianza.",
+    "6. Gestión de crisis comunicacionales en incidentes policiales.",
+    "7. Comunicación en redes sociales: estrategia de contenidos.",
+    "8. Periodismo digital y nuevas narrativas: web, blogs, podcast.",
+    "9. Desinformación y fake news: estrategias de verificación.",
+    "10. Transparencia y acceso a la información pública (LOTAIP).",
+    "11. Ley Orgánica de Comunicación del Ecuador: aplicación en el sector público.",
+    "12. Ética periodística y deontología profesional.",
+    "13. Comunicación interna: fortalecimiento de la cultura organizacional.",
+    "14. Diseño de campañas de prevención y educación ciudadana.",
+    "15. Marketing social para programas de seguridad pública.",
+    "16. Fotografía y producción audiovisual para comunicación policial.",
+    "17. Manejo de la comunicación en operativos de alto riesgo.",
+    "18. Protección de datos personales en la difusión de información.",
+    "19. Comunicación en situaciones de emergencia y desastres naturales.",
+    "20. Relaciones públicas y protocolo institucional.",
+    "21. Organización de eventos y ceremonias oficiales.",
+    "22. Comunicación para la igualdad de género y diversidad.",
+    "23. Prevención de la violencia desde la comunicación comunitaria.",
+    "24. Comunicación no verbal y lenguaje corporal en entrevistas.",
+    "25. Técnicas de redacción de discursos para altos mandos.",
+    "26. Manejo de plataformas de monitoreo de medios y clipping.",
+    "27. Accesibilidad y lenguaje claro en la comunicación pública.",
+    "28. Comunicación intercultural en zonas con diversidad étnica.",
+    "29. Construcción de discurso policial y narrativa institucional.",
+    "30. Planificación estratégica de comunicación (modelos PES, RACE).",
+    "31. Comunicación para la rendición de cuentas a la ciudadanía.",
+    "32. El rol del comunicador en consejos de seguridad ciudadana.",
+    "33. Investigación periodística aplicada a temas de seguridad.",
+    "34. Derecho a la propia imagen y consentimiento en coberturas.",
+    "35. Producción de contenidos gráficos: infografías y visualización de datos.",
+    "36. Comunicación de riesgo: alertas y recomendaciones a la población.",
+    "37. Gestión de comentarios y trolles en redes institucionales.",
+    "38. Colaboración con influencers y líderes de opinión.",
+    "39. Normativa de publicidad estatal y contratación de pauta (LOSNCP).",
+    "40. Evaluación de impacto de campañas comunicacionales.",
+    "41. Comunicación en procesos electorales y participación ciudadana.",
+    "42. Protección de fuentes periodísticas y confidencialidad.",
+    "43. Lenguaje incluyente y no discriminatorio.",
+    "44. Comunicación para la seguridad vial y prevención de accidentes.",
+    "45. Técnicas de neuromarketing aplicadas a mensajes de prevención.",
+    "46. Comunicación durante crisis de rehenes o secuestros.",
+    "47. Elaboración de manuales de identidad visual corporativa.",
+    "48. Comunicación 2.0: interacción con la ciudadanía en tiempo real.",
+    "49. Big data y análisis de tendencias en redes para inteligencia policial.",
+    "50. Innovación en comunicación: realidad aumentada, IA generativa y ética."
+  ],
+  casoBanco: {
+    enunciado: "Un video que muestra a dos policías forcejeando violentamente con un civil se ha viralizado en redes sociales. La prensa exige declaración oficial. Usted es el comunicador social institucional. Integre doctrina de autogestión y transparencia.",
+    preguntas: [
+      "1. ¿Cuál sería la estrategia inmediata para manejar la crisis en las primeras 24 horas?",
+      "2. Redacte un borrador de comunicado oficial que responda a la situación.",
+      "3. ¿Qué aspectos debe cuidar durante la rueda de prensa, aplicando seguridad operativa en la comunicación?"
+    ],
+    solucion: "1. Activar comité de crisis; recabar información verificada; emitir comunicado en ≤2 h reconociendo el incidente, informando investigación interna y expresando solidaridad si hay heridos; preparar al vocero; monitorear redes. Autogestión: plan de crisis previamente ensayado.\n2. 'La Policía Nacional informa que se ha tomado conocimiento de un incidente ocurrido hoy en [lugar], en el que intervinieron dos servidores policiales. Se ha dispuesto una investigación inmediata. Reiteramos nuestro compromiso con el respeto irrestricto a los derechos humanos y la transparencia. Para mayor información, se convoca rueda de prensa a las [hora].'\n3. Vocero: calma, empatía, ceñirse a hechos, no confrontar, frases puente, contacto visual. Registrar la rueda para archivo. Seguridad operativa: no revelar detalles que entorpezcan la investigación judicial."
+  },
+  casoMuestra: {
+    enunciado: "La Policía Nacional necesita lanzar una campaña en redes sociales para reducir el índice de accidentes de tránsito en feriados. Dispone de un presupuesto mínimo y 3 semanas de plazo.",
+    preguntas: [
+      "1. ¿Qué estrategia de contenidos propondría para Facebook, Instagram y Twitter/X?",
+      "2. ¿Cómo mediría el impacto de la campaña?",
+      "3. ¿Qué alianzas estratégicas buscaría para ampliar el alcance?"
+    ],
+    solucion: "1. Contenidos: video testimonial de víctimas (emotivo), infografías con estadísticas locales, desafíos con hashtag, transmisiones en vivo con peritos de tránsito. Frecuencia: 2 publicaciones/día en picos de tráfico.\n2. Métricas: alcance orgánico, impresiones, tasa de engagement, menciones del hashtag, variación en reportes de accidentes durante el feriado.\n3. Alianzas: ANT, municipios, medios de comunicación locales, influencers de movilidad y conductores conocidos de la región."
+  },
+  promptExtra: "Énfasis en gestión de crisis comunicacionales, comunicación digital institucional y transparencia en la Policía Nacional."
+};
+
+
+/* ──────────────────────────────────────────────
+   ÁREA JURÍDICA
+────────────────────────────────────────────── */
+CARRERAS["Derecho"] = {
+  area: "Jurídica",
+  temario: [
+    "1. El debido proceso en la actuación policial: fundamentos constitucionales.",
+    "2. Garantías básicas del detenido (derechos en aprehensión y retención).",
+    "3. Control de legalidad de allanamientos y registros sin orden judicial.",
+    "4. Uso legítimo de la fuerza policial: principios de proporcionalidad y necesidad.",
+    "5. Derechos humanos en operativos policiales: estándares internacionales.",
+    "6. Responsabilidad penal del servidor policial por actos arbitrarios.",
+    "7. Procedimiento disciplinario policial: faltas, sanciones y recursos.",
+    "8. El hábeas corpus como garantía frente a detenciones ilegales.",
+    "9. Acción de protección contra actuaciones policiales vulneradoras de derechos.",
+    "10. Prueba ilícita: exclusión de evidencias obtenidas con violación de derechos.",
+    "11. Cadena de custodia de evidencias: normativa legal y protocolos.",
+    "12. El fiscal y la policía: coordinación en la investigación penal.",
+    "13. Medidas cautelares personales y control policial.",
+    "14. Flagrancia: concepto, procedimiento y límites legales.",
+    "15. Procedimiento para contravenciones de tránsito y rol de la policía.",
+    "16. Violencia intrafamiliar: competencias policiales y medidas de protección.",
+    "17. Protección integral a víctimas y testigos en el sistema penal.",
+    "18. Justicia penal juvenil: procedimiento especial y participación policial.",
+    "19. Extinción de dominio: base legal y apoyo policial.",
+    "20. Régimen legal de armas, municiones y explosivos.",
+    "21. Control de sustancias sujetas a fiscalización: normativa y procedimientos.",
+    "22. Migración y extranjería: facultades de control policial.",
+    "23. Sistema de contratación pública (LOSNCP) para bienes y servicios policiales.",
+    "24. Contratación administrativa de personal policial: derechos y deberes.",
+    "25. Responsabilidad civil del Estado por actos de servidores policiales.",
+    "26. El Código Orgánico Administrativo (COA) y su aplicación en la Policía.",
+    "27. Régimen disciplinario de la Policía Nacional.",
+    "28. Derecho a la salud del personal policial y su familia.",
+    "29. Seguridad social del policía: pensiones, jubilación y riesgos profesionales.",
+    "30. Acceso a la información pública (LOTAIP) y transparencia policial.",
+    "31. Protección de datos personales en bases de datos policiales.",
+    "32. Delitos informáticos: competencias de la unidad policial especializada.",
+    "33. Cibercrimen y evidencia digital: aspectos legales y cadena de custodia.",
+    "34. Interceptación de comunicaciones: requisitos constitucionales y legales.",
+    "35. Agentes encubiertos y técnicas especiales de investigación.",
+    "36. Cooperación judicial internacional en materia penal.",
+    "37. Trata de personas y tráfico ilícito de migrantes: tipificación penal.",
+    "38. Delitos de odio y discriminación: abordaje policial y judicial.",
+    "39. Delitos ambientales: competencias de la Policía Nacional.",
+    "40. Corrupción en la función policial: tipificación, investigación y sanción.",
+    "41. El principio de oportunidad en el COIP.",
+    "42. Conciliación y acuerdos reparatorios en delitos de menor lesividad.",
+    "43. Juicio penal oral: roles de fiscal, defensa y policía en estrado.",
+    "44. Impugnación de sentencias: recursos y control constitucional.",
+    "45. La Corte Interamericana de Derechos Humanos y la doctrina policial.",
+    "46. Debida motivación de informes y partes policiales con valor probatorio.",
+    "47. Ética profesional del abogado asesor de la Policía Nacional.",
+    "48. Responsabilidad del abogado policial: faltas disciplinarias y penales.",
+    "49. Arbitraje y mediación en conflictos que involucran a la Policía.",
+    "50. Planificación estratégica legal en la institución policial."
+  ],
+  casoBanco: {
+    enunciado: "Durante un operativo en La Mariscal, agentes ingresan a un departamento sin orden judicial porque 'escucharon gritos de auxilio'. Dentro encuentran una fiesta con consumo de alcohol y 10 g de marihuana. Detienen a todos los asistentes. El abogado de uno de los detenidos interpone una acción de protección alegando vulneración del derecho a la inviolabilidad del domicilio. Usted es el asesor jurídico de la unidad.",
+    preguntas: [
+      "1. ¿Es constitucionalmente válido el allanamiento sin orden judicial por 'gritos de auxilio'? Fundamente.",
+      "2. ¿Qué recurso o acción constitucional procede contra la detención masiva?",
+      "3. ¿Qué recomendaciones daría al comando para futuros operativos, integrando legalidad y autogestión?"
+    ],
+    solucion: "1. La Constitución protege la inviolabilidad del domicilio. El ingreso sin orden puede ser válido ante riesgo grave e inminente para la vida (gritos de auxilio). Sin embargo, no encontrando delito flagrante, las detenciones masivas son desproporcionadas. La cantidad de marihuana puede estar dentro de la dosis máxima personal (consultar normativa vigente de drogas).\n2. Procede acción de protección por vulneración de derechos constitucionales en las detenciones. También hábeas corpus para quienes permanezcan privados de libertad ilegalmente. Proceso sumario ante juez constitucional.\n3. Capacitar al personal en excepciones al principio de inviolabilidad; documentar cualquier ingreso de emergencia con informe y grabación corporal; ante duda, no detener masivamente. Activar protocolo de coordinación con Fiscalía. Autogestión: los mandos revisan estos criterios con el equipo legal periódicamente."
+  },
+  casoMuestra: {
+    enunciado: "Un servidor policial es acusado de haber golpeado a un detenido durante la aprehensión. El proceso disciplinario interno ya fue iniciado y paralelamente existe una denuncia penal. Usted es el asesor jurídico.",
+    preguntas: [
+      "1. ¿Pueden coexistir el proceso disciplinario y el penal sin violar el principio non bis in idem?",
+      "2. ¿Qué medidas cautelares podría solicitar el servidor policial mientras dure el proceso?",
+      "3. ¿Cómo garantizaría el debido proceso en el procedimiento disciplinario?"
+    ],
+    solucion: "1. Sí pueden coexistir porque tienen naturalezas y finalidades distintas (disciplinaria vs. penal). El non bis in idem prohíbe doble sanción de la misma naturaleza por los mismos hechos, no la dualidad de procesos en distintas jurisdicciones.\n2. Solicitar suspensión provisional con goce de sueldo hasta resolución del proceso penal, medidas alternativas a la suspensión inmediata del cargo.\n3. Garantizar: notificación oportuna de los cargos, derecho a presentar pruebas y testigos de descargo, audiencia oral, resolución motivada y recursos de impugnación."
+  },
+  promptExtra: "Énfasis en derecho constitucional, administrativo y penal aplicado a la Policía Nacional del Ecuador."
+};
+
+CARRERAS["Abogado"] = {
+  area: "Jurídica",
+  temario: [
+    "1. Estrategias de litigación penal en casos de abuso de autoridad policial.",
+    "2. El interrogatorio y contrainterrogatorio de testigos en juicio oral.",
+    "3. Redacción de recursos de apelación y casación penal.",
+    "4. Argumentación de apertura y cierre de juicio oral.",
+    "5. Manejo de la prueba ilícita en audiencia: cómo excluirla y argumentar.",
+    "6. Técnicas de litigación ante la Corte Constitucional.",
+    "7. Preparación de informes periciales y contrainterrogatorio a peritos.",
+    "8. Defensa técnica de servidores policiales imputados.",
+    "9. Procedimiento de flagrancia: defensa en audiencia de calificación.",
+    "10. Recursos contra medidas cautelares personales.",
+    "11. Incidente de nulidad procesal en materia penal.",
+    "12. Impugnación de sentencias condenatorias: estructura del recurso de casación.",
+    "13. Litigación en delitos de lesa humanidad y graves violaciones de DDHH.",
+    "14. Práctica de medios de prueba en audiencia.",
+    "15. Oralidad en el proceso penal: principios y técnicas de exposición.",
+    "16. El papel del abogado defensor durante la investigación previa.",
+    "17. Actuación profesional ante la Fiscalía.",
+    "18. Conciliación y solución alternativa de conflictos en infracciones penales leves.",
+    "19. Mediación penal y justicia restaurativa: rol del abogado.",
+    "20. Defensa de víctimas en procesos penales (acusación particular).",
+    "21. Litigación ante tribunales de garantías penitenciarias.",
+    "22. Impugnación de resoluciones administrativas policiales.",
+    "23. El debido proceso en el procedimiento disciplinario policial.",
+    "24. Defensa en procesos contencioso-administrativos por actos policiales.",
+    "25. Responsabilidad civil extracontractual del Estado y acción de repetición.",
+    "26. Arbitraje y mediación en conflictos contractuales de la Policía.",
+    "27. Redacción de demandas, contestaciones e incidentes en lo civil.",
+    "28. Ejecución de sentencias en materia laboral y seguridad social policial.",
+    "29. Impugnación de actos administrativos en la carrera policial.",
+    "30. Litigación constitucional: acción extraordinaria de protección.",
+    "31. Asesoramiento técnico-legal en operativos policiales complejos.",
+    "32. Mecanismos de protección a víctimas y testigos.",
+    "33. Estrategias de negociación con la Fiscalía.",
+    "34. Técnicas de litigación en juicios por delitos sexuales y violencia de género.",
+    "35. Defensa en delitos flagrantes de narcotráfico: control de legalidad.",
+    "36. Manejo de evidencias digitales en el juicio oral.",
+    "37. Impugnación de sentencias de tribunales penales militares.",
+    "38. Litigación ante la Corte IDH.",
+    "39. Argumentación sobre la aplicación del principio de proporcionalidad en las penas.",
+    "40. El uso de precedentes jurisprudenciales en la audiencia.",
+    "41. Redacción de amicus curiae ante tribunales internacionales.",
+    "42. Técnicas de litigación en casos de tortura y tratos crueles.",
+    "43. Manejo de la prueba de contexto en delitos de lesa humanidad.",
+    "44. Litigación estratégica para la protección de derechos policiales vulnerados.",
+    "45. Impugnación de resoluciones de la Contraloría General del Estado.",
+    "46. El proceso contencioso-tributario y la policía fiscal.",
+    "47. Defensa en juicios por responsabilidad penal juvenil.",
+    "48. Litigación en casos de trata de personas y tráfico de migrantes.",
+    "49. Impugnación de laudos arbitrales adversos a la institución policial.",
+    "50. Ética y responsabilidad profesional del litigante público."
+  ],
+  casoBanco: {
+    enunciado: "Usted defiende a un servidor policial acusado de abuso de autoridad por golpear a un detenido durante una aprehensión. La fiscalía ofrece un video borroso de cámara de seguridad y el testimonio del detenido. El juicio oral está por iniciarse.",
+    preguntas: [
+      "1. ¿Qué objeciones o argumentos plantearía para desacreditar la prueba de video?",
+      "2. ¿Cómo estructuraría el contrainterrogatorio al detenido?",
+      "3. Proponga una estrategia de litigación con testigos de descargo y argumentos de cierre."
+    ],
+    solucion: "1. Objeciones: falta de cadena de custodia del video, falta de autenticidad (no certificada), posibilidad de manipulación, baja calidad que impide identificar a las personas o los actos con certeza. Solicitar exclusión si no cumple requisitos legales.\n2. Contrainterrogatorio: ubicación exacta, posibles bloqueos visuales, consumo de sustancias que afecten la memoria, interés en el resultado del juicio (demanda civil pendiente), inconsistencias con declaración previa en Fiscalía.\n3. Testigos: compañeros de la aprehensión que declaren sobre proporcionalidad. Perito que analice la baja calidad del video. Alegato de cierre: presunción de inocencia, falta de prueba contundente, contexto de resistencia del detenido y entrenamiento policial."
+  },
+  casoMuestra: {
+    enunciado: "Una persona privada de libertad lleva 36 horas detenida sin que se haya formalizado la audiencia de calificación de flagrancia. El juez la programó para mañana. Usted es el defensor.",
+    preguntas: [
+      "1. ¿Qué acción procesal inmediata interpondría y ante qué autoridad?",
+      "2. ¿Cuáles son los plazos constitucionales y legales para la audiencia de calificación?",
+      "3. ¿Qué consecuencias procesales genera la violación de esos plazos?"
+    ],
+    solucion: "1. Hábeas corpus ante cualquier juez de la República, dado que el derecho a la libertad está siendo restringido ilegalmente por incumplimiento de plazos.\n2. La Constitución establece que la persona detenida debe ser puesta a disposición del juez dentro de las 24 horas. Superado ese plazo sin audiencia de calificación, la detención es ilegal.\n3. El juez debe disponer la libertad inmediata. Adicionalmente, los servidores responsables de la demora pueden ser denunciados disciplinaria y penalmente. El proceso penal puede continuar si la Fiscalía solicita medidas cautelares alternativas."
+  },
+  promptExtra: "Énfasis en técnicas de litigación oral, estrategia de defensa y argumentación jurídica en el sistema penal acusatorio ecuatoriano."
+};
+
+CARRERAS["Jurisprudencia"] = {
+  area: "Jurídica",
+  temario: [
+    "1. Teoría general del derecho aplicada a la función policial.",
+    "2. Hermenéutica jurídica: métodos de interpretación constitucional.",
+    "3. El precedente vinculante en el sistema ecuatoriano.",
+    "4. Análisis crítico de sentencias de la Corte Constitucional sobre uso de la fuerza.",
+    "5. La doctrina de la Corte IDH y su recepción en la jurisprudencia nacional.",
+    "6. Construcción de líneas jurisprudenciales en materia de flagrancia.",
+    "7. El control de convencionalidad en la actuación policial.",
+    "8. Interpretación conforme y bloque de constitucionalidad.",
+    "9. Argumentación jurídica y motivación de decisiones policiales.",
+    "10. Principios generales del derecho en la jurisprudencia policial.",
+    "11. El precedente horizontal y vertical en la Corte Constitucional.",
+    "12. Análisis de sentencias sobre detención preventiva.",
+    "13. La separación de poderes y la autonomía funcional de la Policía.",
+    "14. Evolución jurisprudencial del derecho al debido proceso en sede policial.",
+    "15. El principio de legalidad en la jurisprudencia administrativa.",
+    "16. La responsabilidad extracontractual del Estado: evolución jurisprudencial.",
+    "17. El derecho a la igualdad y no discriminación en la jurisprudencia policial.",
+    "18. El hábeas corpus y su evolución en la Corte Constitucional.",
+    "19. La acción de protección: estándares jurisprudenciales.",
+    "20. Derecho a la defensa en el proceso disciplinario policial.",
+    "21. Proporcionalidad en la jurisprudencia de medidas cautelares.",
+    "22. El principio del interés superior del niño en casos policiales.",
+    "23. Jurisprudencia sobre violencia de género y protección de víctimas.",
+    "24. Análisis de sentencias de la Corte IDH contra Ecuador en materia policial.",
+    "25. Control concreto de constitucionalidad de leyes relacionadas con seguridad.",
+    "26. El recurso de casación: criterios jurisprudenciales de admisibilidad.",
+    "27. La motivación de sentencias como garantía constitucional.",
+    "28. Doctrina del margen de apreciación en derechos humanos.",
+    "29. El principio de buena fe en la actuación de servidores públicos.",
+    "30. La seguridad jurídica y la jurisprudencia vinculante.",
+    "31. Interpretación evolutiva de los derechos fundamentales.",
+    "32. El bloque de constitucionalidad y tratados internacionales de DDHH.",
+    "33. Análisis jurisprudencial de la objeción de conciencia policial.",
+    "34. El debido proceso sancionador en la jurisprudencia administrativa.",
+    "35. El principio de tipicidad y legalidad penal en la jurisprudencia.",
+    "36. La cosa juzgada constitucional y su efecto erga omnes.",
+    "37. El control de convencionalidad en la jurisprudencia ordinaria.",
+    "38. La interpretación sistemática en decisiones policiales.",
+    "39. El derecho a la reparación integral en casos de violación de derechos.",
+    "40. La jurisprudencia sobre la cadena de custodia de evidencias.",
+    "41. Estándares jurisprudenciales sobre allanamientos y registros.",
+    "42. El principio de proporcionalidad en la restricción de derechos.",
+    "43. La doctrina de la conexidad en infracciones disciplinarias.",
+    "44. La jurisprudencia sobre el uso de la fuerza por parte de la policía.",
+    "45. El principio de legalidad en la contratación pública (LOSNCP).",
+    "46. La jurisprudencia en materia de responsabilidad fiscal de servidores policiales.",
+    "47. El derecho de petición y acceso a la información en la jurisprudencia.",
+    "48. La interpretación de los derechos económicos, sociales y culturales para la policía.",
+    "49. La doctrina de la intangibilidad de los derechos fundamentales.",
+    "50. Metodología de análisis de sentencias y producción de doctrina policial."
+  ],
+  casoBanco: {
+    enunciado: "La Corte Constitucional ha emitido dos sentencias contradictorias sobre la procedencia de la prisión preventiva en delitos flagrantes de robo sin violencia. Una indica que procede cuando el monto supera un umbral determinado; otra exige adicionalmente peligro de fuga u obstaculización probatoria. El comando policial le solicita asesoramiento sobre qué criterio aplicar en sus informes.",
+    preguntas: [
+      "1. ¿Qué método de interpretación usaría para resolver la contradicción? Justifique.",
+      "2. ¿Cuál de los dos criterios se alinea mejor con el principio de proporcionalidad y los DDHH?",
+      "3. Proponga un criterio unificado que pueda adoptarse como doctrina policial provisional."
+    ],
+    solucion: "1. Ponderación y jerarquía argumentativa: determinar si existe pronunciamiento unificador de la Corte Constitucional. Sin él, aplicar el criterio que mejor respete la proporcionalidad y los estándares interamericanos. Interpretación sistemática y teleológica indica que la prisión preventiva es ultima ratio.\n2. El criterio que exige elementos adicionales al monto (peligro de fuga u obstaculización) es más compatible con la proporcionalidad. La Corte IDH ha señalado que la prisión preventiva no debe basarse solo en la cuantía del daño.\n3. Doctrina provisional: recomendar prisión preventiva solo si: a) monto supera un umbral razonable y b) existen indicios objetivos de peligro de fuga (falta de arraigo, antecedentes) o de obstaculización. Autogestión: socializar este criterio entre todos los oficiales que elaboran partes."
+  },
+  casoMuestra: {
+    enunciado: "Un ciudadano presenta una acción de protección contra la Policía Nacional alegando que fue detenido arbitrariamente durante una protesta social pacífica. El juez de primera instancia rechazó la acción. El ciudadano apela.",
+    preguntas: [
+      "1. ¿Cuáles son los estándares jurisprudenciales de la Corte Constitucional para admitir y resolver acciones de protección?",
+      "2. ¿Cómo aplicaría el control de convencionalidad en este caso?",
+      "3. ¿Qué medidas de reparación integral procedería si se verifica la vulneración?"
+    ],
+    solucion: "1. La acción de protección procede ante vulneración directa de derechos constitucionales por acción u omisión de una autoridad pública. La Corte exige: subsidiariedad (no hay otro mecanismo adecuado), daño real y actual, nexo causal entre el acto y la vulneración.\n2. Control de convencionalidad: verificar si la detención cumplió con los estándares de la CADH (legalidad, necesidad, proporcionalidad) y la jurisprudencia de la Corte IDH sobre restricciones al derecho de reunión pacífica.\n3. Reparación integral: disculpas públicas, medidas de rehabilitación, garantías de no repetición (capacitación al personal policial), indemnización económica si procede."
+  },
+  promptExtra: "Énfasis en análisis jurisprudencial, interpretación constitucional y doctrina de derechos humanos aplicada a la Policía Nacional."
+};
+
+
+/* ──────────────────────────────────────────────
+   ÁREA DE INGENIERÍAS
+────────────────────────────────────────────── */
+CARRERAS["Ingeniería Civil"] = {
+  area: "Ingenierías",
+  temario: [
+    "1. Mecánica de suelos y cimentaciones en obras policiales (cuarteles, muros perimetrales).",
+    "2. Diseño de estructuras de hormigón armado para edificios de seguridad.",
+    "3. Estructuras metálicas ligeras para garitas y torres de vigilancia.",
+    "4. Patología de construcciones y rehabilitación de cuarteles antiguos.",
+    "5. Hidráulica fluvial y obras de protección contra inundaciones en destacamentos.",
+    "6. Diseño y mantenimiento de pistas de aterrizaje en zonas fronterizas.",
+    "7. Geotecnia aplicada a taludes y estabilidad en destacamentos andinos.",
+    "8. Normativa sismorresistente (NEC) y su aplicación en cuarteles.",
+    "9. Topografía y geodesia para levantamiento de escenas del crimen.",
+    "10. Materiales de construcción alternativos y sostenibles en climas extremos.",
+    "11. Control de calidad del hormigón en obra (ensayos destructivos y no destructivos).",
+    "12. Puentes militares provisionales: cálculo y montaje.",
+    "13. Diseño de pavimentos para estacionamientos y pistas de entrenamiento táctico.",
+    "14. Sistemas de drenaje pluvial en instalaciones policiales.",
+    "15. Normativa de accesibilidad universal en edificios públicos.",
+    "16. Peritaje estructural post-sismo en cuarteles y comisarías.",
+    "17. Instalaciones eléctricas provisionales para campamentos de emergencia.",
+    "18. Cálculo de sobrecargas por nieve en destacamentos de altura.",
+    "19. Impermeabilización y membranas asfálticas en techos de armerías.",
+    "20. Análisis estructural de celdas de detención y seguridad penitenciaria.",
+    "21. Diseño de muros de contención con gaviones en laderas inestables.",
+    "22. Evaluación de riesgos geológicos en ubicación de nuevas unidades.",
+    "23. Métodos de refuerzo estructural con fibra de carbono en cuarteles.",
+    "24. Cimentaciones profundas para torres de telecomunicaciones policiales.",
+    "25. Cubicación y presupuestos en proyectos de infraestructura policial.",
+    "26. Diseño de canchas y pistas de reacción con requisitos de impacto.",
+    "27. Instalaciones hidrosanitarias en destacamentos rurales sin red pública.",
+    "28. Normativa de prevención de incendios en edificios policiales.",
+    "29. Patología del acero de refuerzo por corrosión en clima tropical.",
+    "30. Replanteo topográfico para instalación de antenas de comunicación.",
+    "31. Diseño de depósitos para combustibles y almacenamiento de explosivos.",
+    "32. Cálculo de estructuras temporales para operativos de control en carreteras.",
+    "33. Métodos de auscultación dinámica de puentes con paso de vehículos tácticos.",
+    "34. Legislación de contratación de obra pública y fiscalización (LOSNCP).",
+    "35. Impacto ambiental en construcción de cuarteles en zonas protegidas.",
+    "36. Sistemas de tratamiento de aguas residuales en destacamentos aislados.",
+    "37. Materiales compuestos en blindajes de muros y barreras de seguridad.",
+    "38. Diseño de hangares y mantenimiento de aeronaves policiales.",
+    "39. Normas de seguridad estructural para polvorines y armerías.",
+    "40. Planificación urbana y ubicación estratégica de unidades móviles.",
+    "41. Patología de pavimentos de hormigón en zonas de alto tráfico pesado.",
+    "42. Métodos de evaluación de capacidad portante de suelos con penetrómetro.",
+    "43. Instalación de pararrayos y protección en destacamentos de montaña.",
+    "44. Cálculo de juntas sísmicas en edificios de la Policía Nacional.",
+    "45. Optimización de costos en proyectos de mantenimiento de infraestructura.",
+    "46. Uso de drones topográficos en reconocimiento de terrenos.",
+    "47. Diseño de rampas y accesos para vehículos blindados.",
+    "48. Normativa ecuatoriana de seguridad en gradas y escaleras de emergencia.",
+    "49. Estructuras modulares para despliegue rápido de unidades.",
+    "50. Ciclo de vida y mantenimiento de edificaciones institucionales."
+  ],
+  casoBanco: {
+    enunciado: "Usted es ingeniero civil especialista de la Dirección Nacional de Logística. Debe construirse un cuartel tipo en Morona Santiago (alta sismicidad, fuertes lluvias). El suelo es limo-arcilloso con capacidad portante de 0.8 kg/cm². El proyecto incluye un polvorín subterráneo y una torre de vigilancia de 15 m. Se reciben dos ofertas: una con cimentación superficial mejorada y otra con pilotes.",
+    preguntas: [
+      "1. Evalúe ambas soluciones de cimentación considerando sismicidad, tipo de suelo y costo.",
+      "2. Detalle las verificaciones estructurales necesarias para la torre de vigilancia bajo cargas de viento y sismo.",
+      "3. ¿Qué aspectos de la LOSNCP aplicaría para la adjudicación y fiscalización de esta obra, garantizando transparencia?"
+    ],
+    solucion: "1. La cimentación superficial mejorada puede ser suficiente si se aumenta la profundidad con losa rigidizadora, pero el suelo limo-arcilloso puede licuarse durante un sismo. Los pilotes hasta estrato firme son más seguros pero más costosos. Con presupuesto limitado, cimentación superficial con mejoramiento del terreno si el estudio de sitio descarta licuación. Cumplir NEC-SE-CM y DS.\n2. Torre 15 m: análisis espectral sísmico según NEC-SE-DS (factor de importancia para instalaciones esenciales), cargas de viento según NEC-SE-VIENTO para la zona, verificar desplazamiento lateral, estabilidad global y fatiga en anclajes.\n3. Aplicar principios de transparencia, eficiencia y legalidad. El procedimiento depende del presupuesto (ínfima cuantía, menor cuantía o licitación). Designar administrador de contrato e informes periódicos. Consultar normativa secundaria del SERCOP vigente."
+  },
+  casoMuestra: {
+    enunciado: "Se requiere construir un puente peatonal metálico para conectar dos cuarteles policiales separados por una quebrada en Napo. El puente debe soportar 500 kg/m² y resistir vientos de 120 km/h.",
+    preguntas: [
+      "1. ¿Qué tipo de estructura metálica recomendaría y por qué?",
+      "2. Detalle los ensayos no destructivos para verificar la calidad de las soldaduras.",
+      "3. ¿Qué aspectos de la LOSNCP se aplican para la contratación de la fabricación e instalación?"
+    ],
+    solucion: "1. Cercha tipo Pratt o Warren por eficiencia estructural y facilidad de montaje en zonas de difícil acceso. Distribuye mejor las cargas y permite luces largas.\n2. Líquidos penetrantes (grietas superficiales), ultrasonido (penetración de soldadura), partículas magnéticas en zonas críticas. Normas ISO o ASTM aplicables (consultar catálogo vigente).\n3. Principios de transparencia, eficiencia y legalidad de la LOSNCP. El procedimiento depende del presupuesto. Consultar normativa secundaria del SERCOP para el caso concreto."
+  },
+  promptExtra: "Énfasis en normativa NEC, geotecnia en zonas andinas y tropicales, y obras en instalaciones policiales ecuatorianas."
+};
+
+CARRERAS["Ingeniería Industrial"] = {
+  area: "Ingenierías",
+  temario: [
+    "1. Cadena de suministro de uniformes y equipo táctico policial.",
+    "2. Optimización de procesos en talleres de mantenimiento de flotas.",
+    "3. Control estadístico de calidad en recepción de armamento (ISO 2859).",
+    "4. Gestión de inventarios de repuestos y suministros críticos.",
+    "5. Estudio de tiempos y movimientos en procedimientos administrativos.",
+    "6. Logística de distribución de combustible a zonas fronterizas.",
+    "7. Distribución en planta de almacenes centrales de la Policía.",
+    "8. Análisis de costo-beneficio en adquisiciones de equipo (TCO).",
+    "9. Sistemas de gestión de calidad según ISO 9001 en procesos policiales.",
+    "10. Programación y control de la producción de uniformes.",
+    "11. Seguridad industrial y salud ocupacional en talleres de armas (IESS).",
+    "12. Ergonomía de puestos de trabajo en centros de monitoreo.",
+    "13. Simulación de procesos logísticos con software.",
+    "14. Planificación de requerimiento de materiales (MRP) para mantenimiento.",
+    "15. Análisis de falla y confiabilidad de equipos de comunicación.",
+    "16. Gestión de residuos peligrosos en actividades policiales.",
+    "17. Métodos de pronóstico para demanda de servicios policiales.",
+    "18. Diseño de indicadores de gestión (KPI) para flotas vehiculares.",
+    "19. Lean Manufacturing aplicado a procesos de abastecimiento.",
+    "20. Six Sigma en reducción de errores en trámites de licencias.",
+    "21. Estudio de factibilidad para instalación de talleres regionales.",
+    "22. Logística inversa de equipos dañados y obsoletos.",
+    "23. Manejo de almacenes de evidencias (cadena de custodia).",
+    "24. Sistemas de información gerencial para toma de decisiones.",
+    "25. Evaluación de proveedores bajo criterios de calidad y costo.",
+    "26. Automatización de procesos administrativos (RPA) en RR.HH.",
+    "27. Análisis de riesgo operacional en traslado de valores.",
+    "28. Planificación estratégica y despliegue de objetivos (Hoshin Kanri).",
+    "29. Gestión del mantenimiento centrado en confiabilidad (RCM).",
+    "30. Balance de líneas de ensamble de chalecos antibalas.",
+    "31. Auditorías de calidad internas según normas INEN-ISO.",
+    "32. Localización óptima de centros de distribución regional.",
+    "33. Teoría de colas en ventanillas de atención al público.",
+    "34. Administración de proyectos con restricciones presupuestarias.",
+    "35. Estudio de impacto ambiental en logística (huella de carbono).",
+    "36. Negociación y contratación pública (LOSNCP, subasta inversa).",
+    "37. Diseño de experimentos para mejorar procesos de blindaje.",
+    "38. Costeo ABC en servicios policiales.",
+    "39. Planeación agregada de mantenimiento vehicular anual.",
+    "40. Sistemas de trazabilidad de armas y municiones.",
+    "41. Modelos de inventario con demanda incierta (punto de reorden).",
+    "42. Capacitación Lean Six Sigma para mandos medios.",
+    "43. Análisis envolvente de datos (DEA) para eficiencia de unidades.",
+    "44. Gestión de la cadena de frío para alimentos en destacamentos.",
+    "45. Diseño de cuadros de mando integral (Balanced Scorecard).",
+    "46. Metodología de las 5S en talleres de armería.",
+    "47. Just in Time en reposición de repuestos críticos.",
+    "48. Simulación de evacuación de edificios policiales.",
+    "49. Valoración de puestos de trabajo en estructura organizacional.",
+    "50. Ética y transparencia en la gestión de recursos públicos."
+  ],
+  casoBanco: {
+    enunciado: "La Policía Nacional adquirirá 5.000 uniformes tácticos. Usted debe diseñar el proceso de recepción, control de calidad y distribución a 30 comandos provinciales. El proveedor presenta un lote piloto con defectos en costuras. Se aplica ISO 2859 e INEN. Integre doctrina de autogestión.",
+    preguntas: [
+      "1. ¿Qué plan de muestreo aplicaría para inspeccionar los uniformes? ¿Bajo qué NCA?",
+      "2. Si el lote presenta 12% de defectuosos, ¿cómo procedería según la norma y cómo evitaría corrupción?",
+      "3. Proponga un sistema de distribución logística que minimice tiempo de entrega y costos."
+    ],
+    solucion: "1. ISO 2859-1, NCA 2.5%, nivel de inspección general II. Lote 5.000 uds, código L, muestra 200, aceptación 10, rechazo 11.\n2. Con 12% defectuosos (24/200) se rechaza el lote. Notificar al proveedor, activar cláusula de garantía. Prevención de corrupción: comisión de recepción con veedor ciudadano, principio de transparencia de la LOSNCP, documentar hallazgos con fotografía y actas.\n3. Centro de consolidación en Quito + hubs en Guayaquil y Cuenca. Envíos semanales optimizando carga. Zonas fronterizas: transporte local con GPS. Capacitar al personal en recepción y almacenamiento (autogestión)."
+  },
+  casoMuestra: {
+    enunciado: "El taller central de mantenimiento vehicular de la Policía presenta un tiempo promedio de reparación de 8 días por vehículo, lo que genera una disponibilidad de flota del 65%. La meta institucional es 85%.",
+    preguntas: [
+      "1. Aplique un estudio de tiempos para identificar los cuellos de botella del proceso.",
+      "2. ¿Qué herramienta Lean recomendaría para reducir los tiempos de espera?",
+      "3. Diseñe un indicador KPI y establezca metas para el primer trimestre."
+    ],
+    solucion: "1. Mapear el flujo de valor (VSM): ingreso del vehículo → diagnóstico → solicitud de repuestos → reparación → pruebas → entrega. Cronometrar cada etapa. El cuello de botella típicamente está en la espera de repuestos.\n2. Kanban para gestión de inventario de repuestos críticos + 5S en el taller para reducir búsquedas. Kaizen semanal para identificar desperdicios.\n3. KPI: 'Tasa de disponibilidad de flota' = (vehículos operativos / total flota) × 100. Meta Q1: 70%, Q2: 78%, Q3: 85%. Revisión semanal con el jefe de taller."
+  },
+  promptExtra: "Énfasis en logística policial, control de calidad, gestión de inventarios y optimización de procesos en la Policía Nacional."
+};
+
+CARRERAS["Ingeniería Mecánica"] = {
+  area: "Ingenierías",
+  temario: [
+    "1. Termodinámica aplicada a motores diésel y gasolina de vehículos patrulleros.",
+    "2. Motores de combustión interna (GNV/GLP) en flotas policiales.",
+    "3. Sistemas de inyección electrónica y diagnóstico OBD-II en vehículos operativos.",
+    "4. Refrigeración y climatización de unidades móviles y cuarteles.",
+    "5. Transferencia de calor en sistemas de escape y blindajes ligeros.",
+    "6. Dinámica vehicular y comportamiento en terrenos andinos.",
+    "7. Transmisiones mecánicas, ejes y cajas de transferencia en vehículos todo terreno.",
+    "8. Suspensión, amortiguación y confort en operativos prolongados.",
+    "9. Sistemas de frenos convencionales, ABS y de emergencia.",
+    "10. Neumáticos: selección para asfalto, lastre y condiciones de altura en Ecuador.",
+    "11. Bastidores y carrocerías: fatiga, corrosión y refuerzos estructurales.",
+    "12. Blindaje vehicular: materiales, centro de gravedad y desempeño.",
+    "13. Ensayos no destructivos en componentes de armamento y equipo táctico.",
+    "14. Metalurgia de aceros en cascos, escudos y chalecos balísticos.",
+    "15. Análisis de fallas y fractura: peritaje mecánico en siniestros viales.",
+    "16. Mecánica de materiales aplicada a grilletes y barreras de seguridad perimetral.",
+    "17. Soldadura y procesos de unión en reparaciones estructurales.",
+    "18. Corrosión y recubrimientos protectores en climas húmedos tropicales y de altura.",
+    "19. Diseño de elementos de máquinas en equipos de mantenimiento policial.",
+    "20. Rodamientos, lubricación y análisis de vibraciones en maquinaria.",
+    "21. Hidráulica y neumática en equipos de rescate e instalaciones auxiliares.",
+    "22. Bombas centrífugas y sistemas contra incendios en destacamentos.",
+    "23. Fluidos de potencia en vehículos de carga y grúas del servicio logístico.",
+    "24. Metrología dimensional y calibración de instrumentos de medición.",
+    "25. Control de calidad y muestreo en recepción de repuestos y equipos.",
+    "26. Normativa INEN para vehículos, partes y equipos de seguridad.",
+    "27. LOSNCP en adquisición de maquinaria y servicios mecánicos.",
+    "28. Evaluación técnica de ofertas en licitaciones de vehículos policiales.",
+    "29. Administración de flotas vehiculares estatales: ciclo de vida e indicadores.",
+    "30. Mantenimiento preventivo, predictivo y centrado en la confiabilidad (RCM).",
+    "31. Gestión de almacenes y cadena de suministro de repuestos en el sector público.",
+    "32. Seguridad industrial y salud ocupacional en talleres mecánicos policiales.",
+    "33. Ergonomía y biomecánica en puestos de conducción de patrulleros.",
+    "34. Logística de mantenimiento en unidades distribuidas y zonas rurales.",
+    "35. Energías alternativas y sistemas fotovoltaicos en puestos fronterizos aislados.",
+    "36. Generación y distribución de energía eléctrica de emergencia (grupos electrógenos).",
+    "37. Refrigeración para conservación de evidencias biológicas.",
+    "38. Aire acondicionado y ventilación en armerías y polvorines.",
+    "39. Mecatrónica en sistemas automatizados de vigilancia y drones policiales.",
+    "40. Robótica móvil y manipuladores teleoperados para desactivación de explosivos.",
+    "41. Diseño asistido por computador (CAD) y fabricación asistida (CAM).",
+    "42. Simulación por elementos finitos (FEM) en componentes críticos.",
+    "43. Reconstrucción de accidentes de tránsito: dinámica y huellas de frenado.",
+    "44. Peritaje de vehículos: inspección en casos de delitos.",
+    "45. Normativa ambiental ecuatoriana para talleres mecánicos.",
+    "46. Fiscalización de emisiones contaminantes de la flota policial.",
+    "47. Gestión de calidad según ISO 9001 en mantenimiento mecánico institucional.",
+    "48. Pensamiento crítico: análisis de costos de reparación vs. reemplazo.",
+    "49. Innovación con restricciones presupuestarias: adaptaciones mecánicas de bajo costo.",
+    "50. Ética y transparencia en la gestión de recursos mecánicos públicos."
+  ],
+  casoBanco: {
+    enunciado: "La Dirección de Logística requiere 45 camionetas 4x4 para patrullaje en Morona Santiago, Chimborazo y Esmeraldas (altura hasta 3.800 m, diésel alto azufre >500 ppm). Dos ofertas: A con motor diésel common-rail ≤50 ppm, B con motor gasolina aspirado. Aplique conocimientos de motores, LOSNCP y doctrina de seguridad operativa.",
+    preguntas: [
+      "1. Analice el efecto de la altura en ambos motores y la influencia del combustible en la vida útil.",
+      "2. ¿Se puede rechazar la oferta A por falta de diésel adecuado? Fundamente con principios de la LOSNCP.",
+      "3. Calcule conceptualmente el costo total de propiedad a 5 años e indique cuál conviene al interés público."
+    ],
+    solucion: "1. Altura: densidad del aire cae ~35% a 3.800 m. Motor aspirado (B) pierde ≈30 HP, torque escaso en pendientes. Motor turbo (A) compensa parcialmente. Diésel alto azufre en common-rail corroe inyectores. Sin diésel de calidad en zona, el motor A es inviable. Gasolina sí disponible.\n2. Sí, puede rechazarse porque no se ajusta a la realidad operativa. Principio de eficiencia de la LOSNCP: una oferta que requiere combustible no disponible en la zona es inconveniente. Documentar con mapa de estaciones de servicio.\n3. TCO: A menor adquisición pero altos costos de reparación y paro (disponibilidad <80%). B mayor compra pero bajo mantenimiento y alta disponibilidad. El costo de paro diario justifica elegir B, alineado con la doctrina de seguridad operativa."
+  },
+  casoMuestra: {
+    enunciado: "Un patrullero presenta fallas recurrentes en el sistema de frenos ABS. El diagnóstico OBD-II muestra el código C0035. Se solicita un informe técnico de la falla.",
+    preguntas: [
+      "1. ¿Qué significa el código C0035 y cuál es la causa más probable?",
+      "2. Describa el procedimiento diagnóstico paso a paso.",
+      "3. ¿Qué considera en el reporte técnico para la cadena de custodia del repuesto reemplazado?"
+    ],
+    solucion: "1. C0035 indica falla en el sensor de velocidad de la rueda delantera izquierda. Causa probable: sensor dañado, cable cortado o anillo tónico con suciedad o desgaste.\n2. Diagnóstico: verificar el código con scanner, inspeccionar el sensor y su cableado, medir la resistencia del sensor con multímetro, revisar el anillo tónico, limpiar o reemplazar el componente fallado y borrar códigos.\n3. El reporte debe incluir: código de falla, componente reemplazado (marca, número de parte, serie), técnico responsable, fecha, firma y sello. El repuesto retirado se etiqueta y se almacena para auditoría de la Contraloría."
+  },
+  promptExtra: "Énfasis en mecánica de vehículos policiales, mantenimiento de flota estatal y peritaje mecánico en el Ecuador."
+};
+
+CARRERAS["Ingeniería Automotriz"] = {
+  area: "Ingenierías",
+  temario: [
+    "1. Motores de combustión interna Otto y Diésel: curvas características y emisiones.",
+    "2. Sistemas de inyección electrónica y detección de fallas OBD-II.",
+    "3. Turboalimentación en motores policiales: compensación en altura.",
+    "4. Transmisiones automáticas y manuales en vehículos de patrulla.",
+    "5. Frenos ABS y control de estabilidad en situaciones de emergencia.",
+    "6. Suspensiones reforzadas para vehículos blindados.",
+    "7. Chasis y bastidores: fatiga en ciclos de operación policial.",
+    "8. Neumáticos run-flat y sistemas de presión en persecuciones.",
+    "9. Diagnóstico de fallas con osciloscopio y scanner automotriz.",
+    "10. Sistemas de carga y arranque en climas fríos de altura.",
+    "11. Refrigeración de motores en patrullajes prolongados.",
+    "12. Combustibles alternativos (GNV, GLP) en flotas estatales.",
+    "13. Ensayos de emisiones contaminantes según normativa INEN.",
+    "14. Sensores y actuadores: funcionamiento y diagnóstico.",
+    "15. Red CAN bus en vehículos tácticos: interpretación de tramas.",
+    "16. Sistemas de iluminación adaptativa y sirenas: interferencias eléctricas.",
+    "17. Mantenimiento predictivo por análisis de vibraciones en motor.",
+    "18. Tribología y lubricantes para motores sometidos a alto estrés.",
+    "19. Gestión electrónica de motor (ECU) y reprogramación para altura.",
+    "20. Baterías de iones de litio en vehículos híbridos policiales.",
+    "21. Normativa INEN de vidrios de seguridad y blindaje.",
+    "22. Metrología automotriz: alineación, balanceo y calibración.",
+    "23. Hidráulica de dirección asistida y electrohidráulica.",
+    "24. Climatización en vehículos de transporte de detenidos.",
+    "25. Sistemas de escape catalítico y DPF en motores diésel.",
+    "26. Peritaje de accidentes de tránsito: dinámica y deformaciones.",
+    "27. Electrónica de seguridad pasiva (airbags, pretensores).",
+    "28. Vehículos eléctricos e híbridos enchufables en la institución.",
+    "29. Reciclaje de vehículos fuera de servicio y gestión ambiental.",
+    "30. Motocicletas policiales: mantenimiento de alta cilindrada.",
+    "31. Normas ISO 9001 en talleres de servicio automotriz policial.",
+    "32. Control de inventarios de repuestos críticos (política ABC).",
+    "33. Costos de ciclo de vida de la flota vehicular (TCO).",
+    "34. Subasta inversa para adquisición de vehículos (LOSNCP).",
+    "35. Blindaje de panel de piso contra explosivos improvisados.",
+    "36. Ensayos no destructivos en uniones soldadas de chasis blindado.",
+    "37. Vibraciones y confort en vehículos de patrullaje rural.",
+    "38. Diseño de soportes para equipo táctico en cabina.",
+    "39. Software de diagnóstico en flotas policiales.",
+    "40. Gestión de residuos peligrosos (aceites, baterías) según normativa ambiental.",
+    "41. Ergonomía del puesto de conducción con chaleco balístico.",
+    "42. Protocolos de inspección técnica vehicular (RTV) en Ecuador.",
+    "43. Ayudas electrónicas a la conducción (ADAS) en patrullas.",
+    "44. Materiales compuestos en carrocerías de furgones celulares.",
+    "45. Soldadura de aceros avanzados en refuerzos estructurales.",
+    "46. Análisis de fallas en sistemas de inyección diésel por azufre alto.",
+    "47. Transformación de vehículos comerciales a uso policial.",
+    "48. Telemetría y monitoreo remoto de flotas (GPS/CAN).",
+    "49. Capacitación técnica del personal de talleres móviles.",
+    "50. Evaluación de ofertas técnicas en licitaciones de vehículos."
+  ],
+  casoBanco: {
+    enunciado: "Se adquirirán 20 patrulleros para la sierra centro (altitud 2.800-3.500 m). Opción 1: SUV con motor turbo gasolina 2.0L. Opción 2: pickup diésel 2.8L aspirada. Evalúe desempeño, emisiones y mantenimiento. Aplique normativa INEN y LOSNCP.",
+    preguntas: [
+      "1. Compare el comportamiento de ambos motores en altura, considerando la relación estequiométrica y la potencia disponible.",
+      "2. ¿Qué normas INEN debe cumplir el vehículo y cómo verificaría su conformidad en la recepción?",
+      "3. Si la SUV turbo requiere gasolina de 98 octanos y solo hay súper (92) en zonas rurales, ¿puede rechazarse la oferta?"
+    ],
+    solucion: "1. La SUV turbo compensa la altitud manteniendo potencia. La pickup diésel aspirada pierde ~25% de potencia, inadecuada para pendientes. El turbo mejora la mezcla estequiométrica. Emisiones: la diésel generará humo negro por falta de oxígeno.\n2. Los vehículos deben cumplir normas INEN aplicables a seguridad y emisiones (ej. NTE INEN 2207 para emisiones). En recepción se exige certificado de conformidad y ensayos con analizador de gases. Consultar catálogo actualizado del INEN.\n3. Sí, porque la operatividad real exige combustible disponible. Principio de eficiencia de la LOSNCP: una oferta que requiere combustible no disponible en la zona es inconveniente. Adjuntar evidencia de estaciones de servicio y ficha técnica."
+  },
+  casoMuestra: {
+    enunciado: "Una motocicleta policial de 600 cc presenta pérdida de potencia y consumo excesivo de combustible. El odómetro marca 45.000 km. El último servicio fue hace 12.000 km.",
+    preguntas: [
+      "1. ¿Qué diagnóstico sistemático realizaría para identificar la causa?",
+      "2. ¿Qué componentes incluye el mantenimiento mayor a los 45.000 km?",
+      "3. ¿Cómo documenta el servicio para el historial de mantenimiento institucional?"
+    ],
+    solucion: "1. Diagnóstico: lectura de códigos OBD, inspección de bujías (desgaste, carbonización), limpieza de inyectores, presión de combustible, compresión de cilindros, estado del filtro de aire.\n2. Mantenimiento mayor: aceite y filtro de aceite, filtro de aire y combustible, bujías, revisión de válvulas, cadena de distribución, líquido de frenos y refrigerante.\n3. Documentar en el historial de mantenimiento: fecha, kilometraje, trabajos realizados, repuestos utilizados (marca, número de parte), costo, técnico responsable y firma. Archivar para auditorías de la Contraloría."
+  },
+  promptExtra: "Énfasis en diagnóstico de fallas, mantenimiento de flota policial y evaluación técnica de vehículos adquiridos por el Estado ecuatoriano."
+};
+
+/* ── INGENIERÍA AMBIENTAL (NUEVA) ── */
+CARRERAS["Ingeniería Ambiental"] = {
+  area: "Ingenierías",
+  temario: [
+    "1. Marco legal ambiental ecuatoriano: Código Orgánico del Ambiente y reglamentos aplicables a la Policía.",
+    "2. Gestión integral de residuos sólidos en instalaciones policiales y centros de detención.",
+    "3. Manejo y disposición final de residuos peligrosos generados en talleres mecánicos (aceites, solventes, baterías).",
+    "4. Tratamiento de aguas residuales en destacamentos rurales y fronterizos sin red de alcantarillado.",
+    "5. Calidad del agua para consumo humano en acuartelamientos: parámetros INEN y monitoreo.",
+    "6. Control de emisiones atmosféricas de la flota vehicular policial: normativa nacional y límites permisibles.",
+    "7. Impacto ambiental de polígonos de tiro: plomo en suelo, agua y aire, y medidas de mitigación.",
+    "8. Gestión ambiental de combustibles y derrames de hidrocarburos en instalaciones policiales.",
+    "9. Planes de contingencia ambiental para operativos en zonas de alta biodiversidad (Galápagos, Amazonía).",
+    "10. Estudios de impacto ambiental (EIA) para construcción de cuarteles en zonas protegidas.",
+    "11. Evaluación ambiental estratégica en la planificación de unidades policiales.",
+    "12. Licencias y permisos ambientales para instalaciones de la Policía Nacional.",
+    "13. Monitoreo de ruido en zonas urbanas y su relación con operativos policiales (sirenas, tiro).",
+    "14. Gestión de sustancias químicas peligrosas decomisadas: almacenamiento seguro y neutralización.",
+    "15. Cadena de custodia ambiental de muestras tomadas en delitos ecológicos.",
+    "16. Peritaje ambiental en casos de delitos contra el medio ambiente.",
+    "17. Normativa para el transporte de materiales peligrosos en vehículos policiales.",
+    "18. Remediación de suelos contaminados por hidrocarburos en instalaciones policiales.",
+    "19. Eficiencia energética y energías renovables en cuarteles: paneles solares y sistemas de ahorro.",
+    "20. Huella de carbono de la flota vehicular policial y estrategias de reducción.",
+    "21. Gestión de residuos bioinfecciosos en dispensarios médicos y clínicas policiales.",
+    "22. Control ambiental en la destrucción de drogas decomisadas: emisiones y alternativas.",
+    "23. Protección de fuentes hídricas en zonas donde opera la Policía Nacional.",
+    "24. Biodiversidad y áreas protegidas: rol de control ambiental de la Policía.",
+    "25. Legislación sobre delitos ambientales en el COIP y su tipificación.",
+    "26. Coordinación con el Ministerio del Ambiente en operativos de control ecológico.",
+    "27. Contratación pública de servicios ambientales bajo la LOSNCP.",
+    "28. Indicadores de desempeño ambiental (EPI) en instituciones del sector público.",
+    "29. Sistemas de gestión ambiental ISO 14001 aplicados a la Policía Nacional.",
+    "30. Auditoría ambiental de instalaciones policiales: procedimiento y hallazgos típicos.",
+    "31. Manejo de sustancias controladas de uso legítimo (precursores químicos) en laboratorios forenses.",
+    "32. Restauración ecológica en áreas intervenidas por operativos policiales.",
+    "33. Comunicación ambiental y educación ciudadana en campañas de la Policía.",
+    "34. Monitoreo de calidad del aire en ciudades y su relación con el control vehicular policial.",
+    "35. Gestión de plaguicidas y agroquímicos decomisados: almacenamiento y disposición.",
+    "36. Riesgos ambientales en la destrucción de explosivos y municiones fuera de servicio.",
+    "37. Acuerdos internacionales ambientales ratificados por Ecuador y su aplicación policial.",
+    "38. Control de la minería ilegal: impacto ambiental y procedimientos de intervención policial.",
+    "39. Tala ilegal y tráfico de fauna: procedimiento de decomiso y cadena de custodia.",
+    "40. Contaminación de ríos por minería artesanal: respuesta policial y coordinación interinstitucional.",
+    "41. Planes de manejo ambiental durante la construcción de obras policiales.",
+    "42. Ventilación y control de emisiones en laboratorios de criminalística.",
+    "43. Tratamiento de lixiviados en rellenos sanitarios ubicados cerca de instalaciones policiales.",
+    "44. Gestión de transformadores con PCB en cuarteles antiguos.",
+    "45. Protección de ecosistemas marino-costeros: rol de la Policía Marítima.",
+    "46. Adaptación al cambio climático en la planificación de infraestructura policial.",
+    "47. Evaluación de riesgos ambientales en zonas de catástrofes naturales durante operativos.",
+    "48. Ética ambiental y responsabilidad del servidor policial frente al ecosistema.",
+    "49. Digitalización de trámites ambientales: ventanilla única del Ministerio del Ambiente.",
+    "50. Tendencias en policía ambiental: drones, sensores remotos e inteligencia artificial para la detección de delitos ecológicos."
+  ],
+  casoBanco: {
+    enunciado: "La Policía Nacional interviene en un operativo en la Amazonía donde se detecta una minería ilegal que ha contaminado con mercurio el río Napo. Usted es el especialista en ingeniería ambiental asignado como perito técnico. Debe evaluar el daño, asegurar la evidencia y coordinar con el Ministerio del Ambiente. Aplique doctrina de autogestión y seguridad operativa.",
+    preguntas: [
+      "1. Describa el procedimiento de toma de muestras de agua y sedimento para la cadena de custodia ambiental.",
+      "2. ¿Cuáles son los riesgos para la salud del personal policial que interviene en la zona contaminada con mercurio y qué medidas de protección implementaría?",
+      "3. ¿Qué delitos ambientales tipificados en el COIP (sin citar números de artículo) pueden imputarse a los responsables, y qué coordinación interinstitucional requiere el proceso?"
+    ],
+    solucion: "1. Toma de muestras: usar equipos de protección personal (guantes de nitrilo, mascarilla con filtro para vapores de mercurio, botas impermeables). Tomar muestras de agua superficial en frascos de vidrio ámbar estéril, identificar coordenadas GPS, hora y responsable. Muestras de sedimento con espátula de acero inoxidable. Sellado, etiquetado y traslado en cadena de frío. El perito firma el acta de cadena de custodia junto con un fiscal. Todas las muestras se envían a un laboratorio acreditado.\n2. Riesgos: intoxicación por vapores de mercurio metálico (inhalación), contacto dérmico con agua contaminada. Medidas: uso obligatorio de EPP completo (traje Tyvek, respirador con cartucho para vapores mercúriales, guantes, botas), limitar el tiempo de exposición, monitoreo de salud posterior al operativo (prueba de mercurio en sangre u orina), descontaminación antes de abandonar la zona. Autogestión: el equipo policial debe contar con un kit de EPP específico para operativos en zonas con contaminantes químicos.\n3. Pueden imputarse delitos contra la naturaleza, contaminación de recursos hídricos y daño ambiental grave según el Código Orgánico Integral Penal (COIP). Se debe coordinar con el Ministerio del Ambiente (inspección y cierre del sitio), Fiscalía (apertura de instrucción fiscal), Ministerio de Salud (alerta sanitaria en comunidades afectadas) y Senagua (evaluación del recurso hídrico). La doctrina de seguridad operativa exige un plan de acción coordinado antes de ingresar a la zona."
+  },
+  casoMuestra: {
+    enunciado: "Un taller mecánico de la Policía Nacional en Guayaquil ha dispuesto aceites usados y filtros en un lote baldío contiguo al cuartel, sin tratamiento ni etiquetado. La Contraloría detecta el hallazgo durante una auditoría.",
+    preguntas: [
+      "1. ¿Qué normativa ambiental ecuatoriana regula la disposición de aceites usados y residuos peligrosos industriales?",
+      "2. Proponga un plan de remediación del lote contaminado y un sistema de gestión para evitar recurrencia.",
+      "3. ¿Qué responsabilidades administrativas y ambientales podrían derivarse para los servidores responsables?"
+    ],
+    solucion: "1. El Código Orgánico del Ambiente y el Reglamento de Residuos Peligrosos regulan la gestión de aceites usados; estos deben entregarse a gestores ambientales autorizados por el Ministerio del Ambiente. Los filtros se clasifican como residuos peligrosos y requieren manejo especial (etiquetado, almacenamiento en contenedores herméticos, disposición con empresa certificada).\n2. Plan de remediación: delimitar el área contaminada, excavar suelo afectado y transportarlo a un sitio de disposición autorizado, monitorear la napa freática si la hay. Para evitar recurrencia: implementar un sistema de gestión de residuos peligrosos con registro de generación y entrega a gestor, capacitar al personal de taller, designar un responsable ambiental.\n3. Responsabilidad administrativa ante la Contraloría por perjuicio al Estado (costos de remediación). Responsabilidad ambiental ante el Ministerio del Ambiente (multas y medidas correctivas). Posibles indicios de responsabilidad penal si se demuestra dolo en la contaminación."
+  },
+  promptExtra: "Énfasis en legislación ambiental ecuatoriana, delitos ecológicos en el COIP, cadena de custodia ambiental y gestión de residuos peligrosos en instalaciones policiales."
+};
+
+
+/* ──────────────────────────────────────────────
+   ÁREA ADMINISTRATIVA / FINANCIERA
+────────────────────────────────────────────── */
+CARRERAS["Administración de Empresas"] = {
+  area: "Administrativa",
+  temario: [
+    "1. Fundamentos de administración pública aplicados a la Policía Nacional.",
+    "2. Planificación estratégica en instituciones de seguridad ciudadana.",
+    "3. Gestión de recursos humanos y talento humano en la función policial.",
+    "4. Control de gestión y cuadro de mando integral (BSC) en unidades policiales.",
+    "5. Presupuesto público y ciclo presupuestario en el Ecuador.",
+    "6. Contratación pública y LOSNCP: procedimientos dinámicos y subasta inversa.",
+    "7. Evaluación de proyectos de inversión pública en infraestructura policial.",
+    "8. Gestión de proveedores y cadena de suministro de bienes institucionales.",
+    "9. Marketing social y comunicación estratégica para campañas de prevención.",
+    "10. Liderazgo y toma de decisiones en entornos de alta incertidumbre.",
+    "11. Ética y transparencia en la administración de recursos públicos.",
+    "12. Control interno y auditoría gubernamental (Contraloría General del Estado).",
+    "13. Indicadores de desempeño (KPIs) para operativos policiales.",
+    "14. Reingeniería de procesos en comisarías y unidades administrativas.",
+    "15. Calidad de servicio al ciudadano y gestión de quejas.",
+    "16. Análisis de riesgos operacionales en la función policial.",
+    "17. Gestión del cambio cultural organizacional en la Policía.",
+    "18. Outsourcing y concesiones de servicios no esenciales.",
+    "19. Sistemas de información gerencial para la alta dirección.",
+    "20. Planificación de la demanda para equipos tácticos y uniformes.",
+    "21. Logística inversa y disposición de activos fijos.",
+    "22. Teoría de colas aplicada a ventanillas de atención al público.",
+    "23. Simulación de eventos discretos para optimización de patrullajes.",
+    "24. Costeo basado en actividades (ABC) en servicios policiales.",
+    "25. Balanced Scorecard para comisarías especializadas.",
+    "26. Metodología 5S y Lean en talleres y almacenes policiales.",
+    "27. Estudio de tiempos y movimientos en procesos administrativos.",
+    "28. Gestión de archivos y documentos públicos (Ley de Transparencia).",
+    "29. Administración de contratos de arrendamiento de bienes inmuebles.",
+    "30. Evaluación de desempeño del personal por competencias.",
+    "31. Clima laboral y encuestas de satisfacción interna.",
+    "32. Plan de sucesión en cargos directivos policiales.",
+    "33. Negociación colectiva y relaciones laborales en el sector público.",
+    "34. Gestión de riesgos de lavado de activos en cooperativas policiales.",
+    "35. Compliance y prevención de corrupción (ISO 37001).",
+    "36. Responsabilidad fiscal y administrativa de los servidores públicos.",
+    "37. Gestión de proyectos con metodología PMI en entidades estatales.",
+    "38. Análisis costo-beneficio de la adquisición de tecnología policial.",
+    "39. Modelos de inventario con demanda estacional.",
+    "40. Planeación agregada de mantenimiento mayor de flota vehicular.",
+    "41. Sistemas de pago electrónico y recaudación de multas.",
+    "42. Inteligencia de negocios (BI) para indicadores delictivos.",
+    "43. Gestión de la innovación en procesos policiales.",
+    "44. Responsabilidad social empresarial aplicada a la Policía Nacional.",
+    "45. Gerencia de servicios de salud en el Hospital Policial.",
+    "46. Economía del comportamiento para el diseño de campañas preventivas.",
+    "47. Gestión de alianzas público-privadas en seguridad ciudadana.",
+    "48. Marco legal de la administración financiera del Estado.",
+    "49. Optimización de recursos mediante programación lineal.",
+    "50. Ética policial y rendición de cuentas."
+  ],
+  casoBanco: {
+    enunciado: "La Dirección Nacional de Logística requiere optimizar el proceso de adquisición de 10.000 chalecos antibalas. Dos proveedores precalificados. Usted debe diseñar los criterios de evaluación técnica y elaborar una matriz de ponderación. Debe prever un plan de contingencia ante posibles ofertas anormalmente bajas, integrando la doctrina de autogestión y transparencia.",
+    preguntas: [
+      "1. ¿Cuáles son los pasos formales para declarar desierta una subasta inversa según la LOSNCP?",
+      "2. Proponga un sistema de puntuación técnica (70%) y económica (30%) con indicadores verificables.",
+      "3. Explique cómo evitar la corrupción en la recepción de los chalecos, con principios de control interno."
+    ],
+    solucion: "1. La subasta se declara desierta si no se reciben ofertas, todas son rechazadas o el precio supera el presupuesto referencial. Se emite resolución motivada y se reinicia el proceso. Consultar el procedimiento detallado en la LOSNCP y reglamento vigente.\n2. Técnica: certificado ISO 9001 (10 pts), muestras aprobadas por laboratorio acreditado (20 pts), tiempo de entrega (15 pts), garantía extendida (15 pts). Económica: menor precio obtiene 30 pts; los demás mediante fórmula de proporcionalidad inversa.\n3. Comisión de recepción con veeduría ciudadana, plan de muestreo conforme a normas aplicables (consultar catálogo INEN vigente), documentar cada lote con acta y fotografías, registrar en el sistema de gestión documental. Autogestión: capacitar al personal en integridad y crear canales de denuncia anónimos."
+  },
+  casoMuestra: {
+    enunciado: "Una unidad de Policía Comunitaria de Quito presenta alta rotación de personal (45% anual) y un índice de satisfacción ciudadana del 32%. El comandante le pide un diagnóstico y un plan de mejora.",
+    preguntas: [
+      "1. ¿Qué herramientas administrativas utilizaría para diagnosticar las causas de la alta rotación?",
+      "2. Proponga tres estrategias de retención del talento adaptadas al contexto policial.",
+      "3. Diseñe un indicador KPI para medir la satisfacción ciudadana y establezca una meta trimestral."
+    ],
+    solucion: "1. Entrevistas de salida, encuesta de clima laboral (Great Place to Work adaptada), análisis de ausentismo y quejas internas, revisión de la estructura de incentivos y cargas de trabajo.\n2. Estrategias: a) Programa de reconocimiento mensual con certificados y publicación en boletín institucional; b) Rotación interna planificada para evitar monotonía; c) Capacitación continua con bonificación por certificaciones obtenidas.\n3. KPI: 'Índice de Satisfacción Ciudadana' = (respuestas positivas / total encuestados) × 100. Metodología: encuesta de salida en los tres puntos de atención más concurridos. Meta Q1: 45%. Revisión mensual con el comando."
+  },
+  promptExtra: "Énfasis en administración pública, planificación estratégica, gestión del talento y control interno en la Policía Nacional del Ecuador."
+};
+
+CARRERAS["Ingeniería Informática"] = {
+  area: "Administrativa",
+  temario: [
+    "1. Arquitectura de sistemas de información para la gestión policial.",
+    "2. Bases de datos distribuidas para el registro nacional de antecedentes.",
+    "3. Seguridad informática y ciberseguridad en entornos gubernamentales.",
+    "4. Desarrollo de aplicaciones móviles para patrullaje y denuncias.",
+    "5. Redes de comunicaciones seguras (VPN, MPLS) entre destacamentos.",
+    "6. Sistemas de videovigilancia inteligente y reconocimiento facial.",
+    "7. Análisis de grandes volúmenes de datos (Big Data) para crimen predictivo.",
+    "8. Inteligencia artificial aplicada a la detección de patrones delictivos.",
+    "9. Computación en la nube para alojamiento de evidencias digitales.",
+    "10. Cadena de custodia digital y hash forense (MD5, SHA).",
+    "11. Peritaje informático: recuperación de datos en dispositivos incautados.",
+    "12. Estándares de interoperabilidad (JSON, XML, API REST) entre sistemas.",
+    "13. Metodologías ágiles (Scrum, Kanban) para proyectos de software institucional.",
+    "14. Gestión de identidades y control de acceso basado en roles (RBAC).",
+    "15. Plataformas de gestión de incidentes y tickets (ITIL).",
+    "16. Desarrollo de chatbots para atención ciudadana 24/7.",
+    "17. Sistemas de georreferenciación (GIS) para despacho de unidades.",
+    "18. Protocolos de comunicación inalámbrica (LoRa, 4G/5G) en zonas rurales.",
+    "19. Virtualización de servidores en cuarteles regionales.",
+    "20. Seguridad perimetral: firewalls, IDS/IPS y honeypots.",
+    "21. Ética hacker y pruebas de penetración en infraestructura crítica.",
+    "22. Normativa ecuatoriana de protección de datos (LOPDP).",
+    "23. Gestión de vulnerabilidades y parches en software legado.",
+    "24. Sistemas de respaldo y recuperación de desastres (DRP).",
+    "25. Diseño de interfaces de usuario (UX/UI) para sistemas tácticos.",
+    "26. Automatización de procesos administrativos con RPA.",
+    "27. Blockchain para verificaciones de antecedentes y certificados.",
+    "28. Análisis forense de redes sociales en investigaciones.",
+    "29. Plataformas de e-learning para capacitación policial continua.",
+    "30. Sistemas de gestión de activos de TI.",
+    "31. Monitoreo de flotas mediante telemetría y GPS.",
+    "32. Desarrollo de aplicaciones de realidad aumentada para entrenamiento.",
+    "33. Sistemas de reconocimiento de placas vehiculares (LPR).",
+    "34. Integración de sistemas con el Registro Civil y Tránsito.",
+    "35. Calidad de software según ISO 25010.",
+    "36. Contratación pública de servicios TI (LOSNCP, pliegos).",
+    "37. Gobierno de TI (COBIT, ITIL) en la Policía Nacional.",
+    "38. Gestión de proyectos de software con metodologías híbridas.",
+    "39. Ciberseguridad en dispositivos IoT para sensores perimetrales.",
+    "40. Análisis de logs y SIEM.",
+    "41. Sistemas de votación electrónica para consejos de policía.",
+    "42. Simulación de ataques de denegación de servicio (DDoS).",
+    "43. Técnicas de esteganografía para comunicaciones encubiertas.",
+    "44. Desarrollo de sistemas multiplataforma.",
+    "45. Almacenamiento de evidencias digitales en la nube híbrida.",
+    "46. Protocolos de cifrado de comunicaciones para radios digitales.",
+    "47. Administración de bases de datos NoSQL.",
+    "48. Ética y responsabilidad legal en el manejo de información clasificada.",
+    "49. Optimización de rutas de patrullaje mediante algoritmos genéticos.",
+    "50. Tendencias tecnológicas: Edge computing para análisis en tiempo real."
+  ],
+  casoBanco: {
+    enunciado: "Se requiere desarrollar un sistema de gestión de novedades policiales (SGN-P) para 2.000 usuarios concurrentes, integrado con el Registro Civil y el sistema de expedientes judiciales. Usted lidera el equipo técnico con presupuesto limitado para infraestructura en la nube. Aplique principios de seguridad operativa y autogestión.",
+    preguntas: [
+      "1. ¿Qué arquitectura de software (microservicios o monolítica) recomienda y por qué?",
+      "2. Describa las medidas de seguridad para garantizar la confidencialidad de los datos, alineadas con la normativa ecuatoriana.",
+      "3. ¿Cómo implementaría la interoperabilidad con servicios REST del Registro Civil?"
+    ],
+    solucion: "1. Microservicios: escalabilidad independiente por módulo (autenticación, novedades, integraciones), tolerancia a fallos. Permite mantenimiento autónomo (autogestión). Aunque más compleja inicialmente, es la arquitectura correcta para 2.000 usuarios concurrentes.\n2. Autenticación multifactor (MFA) + OAuth2, cifrado TLS 1.3 en tránsito, AES-256 en reposo. Auditoría de accesos y logs inmutables. Cumplir la Ley Orgánica de Protección de Datos (LOPDP) ecuatoriana.\n3. JSON + API REST con autenticación Bearer Token, documentación OpenAPI. Integración síncrona: GET/POST; asíncrona: colas (RabbitMQ). Firmar digitalmente cada petición con certificado de la autoridad certificadora del Estado. Throttling y logging centralizado para seguridad operativa."
+  },
+  casoMuestra: {
+    enunciado: "La Policía Nacional detecta que su sistema de denuncias en línea fue vulnerado y datos de 15.000 ciudadanos fueron expuestos. Usted es el responsable de TI. Debe gestionar el incidente.",
+    preguntas: [
+      "1. Describa los pasos inmediatos del plan de respuesta a incidentes de seguridad.",
+      "2. ¿Qué obligaciones legales tiene la institución según la normativa ecuatoriana de protección de datos?",
+      "3. ¿Cómo evitaría que el incidente se repita mediante controles técnicos y organizacionales?"
+    ],
+    solucion: "1. Pasos: contención (aislar el sistema afectado), erradicación (identificar y eliminar la vulnerabilidad), análisis forense (preservar logs y evidencia), notificación interna (al mando y al área jurídica), recuperación (restaurar desde backup limpio), lecciones aprendidas.\n2. La LOPDP ecuatoriana exige notificar a la autoridad de control en el plazo establecido y comunicar a los titulares afectados si el incidente conlleva riesgo alto. Consultar el reglamento vigente para los plazos exactos.\n3. Controles técnicos: parcheo inmediato de la vulnerabilidad, WAF, pentesting trimestral. Organizacionales: política de gestión de vulnerabilidades, capacitación al personal en phishing, revisión de permisos de acceso (principio de mínimo privilegio)."
+  },
+  promptExtra: "Énfasis en ciberseguridad, peritaje informático, protección de datos y sistemas de información para la gestión policial ecuatoriana."
+};
+
+CARRERAS["Arquitectura"] = {
+  area: "Administrativa",
+  temario: [
+    "1. Diseño bioclimático de cuarteles policiales en zonas ecuatoriales.",
+    "2. Normativa NEC aplicada a comisarías y destacamentos.",
+    "3. Accesibilidad universal en edificios institucionales (CONADIS).",
+    "4. Patología de edificaciones y refuerzo estructural de cuarteles antiguos.",
+    "5. Planificación urbana y ubicación estratégica de unidades policiales.",
+    "6. Diseño de espacios de detención temporal: celdas y áreas de seguridad.",
+    "7. Materiales sostenibles y de bajo costo para zonas rurales.",
+    "8. Acústica arquitectónica en salas de interrogatorio y monitoreo.",
+    "9. Iluminación natural y artificial en centros de operaciones 24h.",
+    "10. Sistemas de evacuación y rutas de escape en caso de disturbios.",
+    "11. Arquitectura modular para despliegue rápido en fronteras.",
+    "12. Paisajismo y defensa perimetral con barreras vegetales.",
+    "13. Normativa de prevención de incendios en polvorines.",
+    "14. Diseño de torres de vigilancia y garitas con visión panorámica.",
+    "15. Confort térmico en destacamentos de la costa y amazonía.",
+    "16. Gestión de aguas lluvias y drenajes en patios de maniobras.",
+    "17. Diseño de fachadas antibalas y protección balística perimetral.",
+    "18. Restauración de edificios con valor patrimonial para uso policial.",
+    "19. Metodología BIM para proyectos de infraestructura pública.",
+    "20. Legislación de contratación de obra pública en Ecuador (LOSNCP).",
+    "21. Fiscalización de obras: roles del administrador de contrato.",
+    "22. Diseño de estacionamientos subterráneos para flota blindada.",
+    "23. Sostenibilidad: techos verdes y paneles solares en azoteas.",
+    "24. Estudios de impacto vial para nuevas unidades operativas.",
+    "25. Cimentaciones profundas en terrenos inestables de la cordillera.",
+    "26. Diseño de polideportivos y áreas de entrenamiento policial.",
+    "27. Evaluación de riesgos geotécnicos en laderas y zonas de deslizamiento.",
+    "28. Sistemas de impermeabilización y control de humedad en armerías.",
+    "29. Espacios de bienestar psicológico para el personal.",
+    "30. Diseño de helipuertos en azoteas de cuarteles generales.",
+    "31. Normativa INEN sobre vidrios de seguridad en fachadas.",
+    "32. Rehabilitación de edificios dañados por eventos sísmicos.",
+    "33. Diseño de laboratorios de criminalística: ventilación y bioseguridad.",
+    "34. Optimización de espacios en centros de comando y control (C4).",
+    "35. Cálculo de juntas sísmicas en edificios de gran altura.",
+    "36. Materiales ignífugos en áreas de almacenamiento de municiones.",
+    "37. Sistemas de climatización pasiva para zonas tropicales.",
+    "38. Diseño de senderos accesibles para personas con movilidad reducida.",
+    "39. Planes de manejo ambiental durante la construcción de cuarteles.",
+    "40. Arquitectura carcelaria mínima y polígonos de control.",
+    "41. Uso de drones para levantamiento topográfico de terrenos.",
+    "42. Diseño de pararrayos y protección contra descargas atmosféricas.",
+    "43. Certificación LEED o EDGE para edificios institucionales.",
+    "44. Coordinación con otras instituciones para sedes compartidas.",
+    "45. Modelos de financiamiento público para infraestructura policial.",
+    "46. Gestión de residuos de construcción en cuarteles.",
+    "47. Diseño de muros cortina en edificios administrativos.",
+    "48. Control de calidad de hormigón en obra.",
+    "49. Normativa de accesibilidad al medio físico (Ordenanza Metropolitana).",
+    "50. Arquitectura efímera para operativos temporales en eventos masivos."
+  ],
+  casoBanco: {
+    enunciado: "La Policía Nacional planea construir un Centro de Comando y Control (C4) en Quito (alta sismicidad). El terreno tiene 5.000 m² con pendiente del 15%. Se requiere un edificio de 3 pisos, sótano para estacionamiento blindado y helipuerto en azotea. Presupuesto ajustado, debe cumplir la normativa NEC vigente. Integre doctrina de seguridad operativa.",
+    preguntas: [
+      "1. ¿Qué tipo de cimentación recomendaría? Justifique con base en la pendiente y el riesgo sísmico.",
+      "2. Proponga un sistema constructivo que acelere el cronograma y reduzca costos sin sacrificar seguridad.",
+      "3. ¿Cuáles son los requisitos de accesibilidad universal que debe incorporar según la normativa ecuatoriana?"
+    ],
+    solucion: "1. Cimentación mixta: pilotes de hormigón armado hasta estrato rocoso (pendiente + posible licuación) + losa rigidizadora. Evita asentamientos diferenciales y mejora respuesta sísmica.\n2. Paneles modulares de acero liviano con núcleos de hormigón en cajas de escaleras. Acelera montaje, reduce mano de obra. Garantizar arriostramiento sismorresistente según NEC vigente. Autogestión: capacitar al personal policial en mantenimiento básico de la envolvente.\n3. Rampas con pendiente ≤8% en ingresos, puertas de ancho mínimo 90 cm, señalética podotáctil, baños adaptados y al menos un ascensor accesible (NEC-11 y NTE INEN accesibilidad). Rutas de evacuación claras y zonas de reunión protegidas."
+  },
+  casoMuestra: {
+    enunciado: "Se debe diseñar un consultorio médico policial de 120 m² en una comisaría rural de la Amazonía. Debe contar con área de espera, consulta, procedimientos menores y manejo de residuos infecciosos.",
+    preguntas: [
+      "1. ¿Qué consideraciones de ventilación y climatización pasiva recomienda para la Amazonía?",
+      "2. Proponga una distribución espacial que garantice flujos separados (personal sanitario / policías detenidos).",
+      "3. Mencione tres materiales de construcción sostenibles y de bajo costo adecuados a la humedad."
+    ],
+    solucion: "1. Ventilación cruzada mediante celosías altas, orientación este-oeste para evitar ganancia solar excesiva, sobretechos de madera tratada con extractores eólicos pasivos.\n2. Ingreso independiente para público, circuito cerrado para detenidos con acceso directo desde área de custodia, área de servicio con vestidores. Pasillo interno con barrera sanitaria. Visibilidad desde el puesto de control.\n3. Bambú tratado (guadua) para estructura secundaria, paneles de cemento de cáñamo y tejas de plástico reciclado. Todo con tratamiento anticorrosivo por alta humedad. Manuales de mantenimiento para el personal policial (autogestión)."
+  },
+  promptExtra: "Énfasis en diseño sísmico, confort térmico en climas ecuatoriales y normativa de accesibilidad para instalaciones policiales."
+};
+
+CARRERAS["Contabilidad y Auditoría"] = {
+  area: "Administrativa",
+  temario: [
+    "1. Contabilidad gubernamental y el plan de cuentas del sector público ecuatoriano.",
+    "2. Principios de contabilidad generalmente aceptados (PCGA) y su aplicación en la Policía.",
+    "3. Normas Internacionales de Contabilidad para el Sector Público (NICSP).",
+    "4. Registro de ingresos y gastos en una entidad policial: cédula presupuestaria.",
+    "5. El presupuesto general del Estado y la asignación a la Policía Nacional.",
+    "6. Control interno en la gestión financiera de unidades policiales (COSO).",
+    "7. Auditoría gubernamental: fases y tipos según la Contraloría General del Estado.",
+    "8. Examen especial a la ejecución presupuestaria de un comando provincial.",
+    "9. Auditoría financiera de cuentas bancarias y conciliaciones en destacamentos.",
+    "10. Auditoría de cumplimiento de la LOSNCP en la contratación de bienes y servicios.",
+    "11. Evaluación del sistema de control interno en el ciclo de nómina.",
+    "12. Pruebas sustantivas y de cumplimiento en auditoría de adquisiciones.",
+    "13. Informe de auditoría con indicios de responsabilidad administrativa y civil culposa.",
+    "14. Técnicas de muestreo estadístico en auditoría de inventarios de armería.",
+    "15. Indicadores de gestión financiera para unidades policiales.",
+    "16. La LOSNCP y su reglamento: principios de transparencia, igualdad y publicidad.",
+    "17. Procedimientos de contratación pública: ínfima cuantía, menor cuantía, cotización.",
+    "18. Evaluación de ofertas y selección de proveedores con criterios de costo y calidad.",
+    "19. Fiscalización de contratos de obra y servicios en la Policía.",
+    "20. Contratación por emergencia: requisitos y controles posteriores.",
+    "21. Gestión de bienes de larga duración en el sector público: registro y depreciación.",
+    "22. Conciliación de inventarios físicos de vehículos con registros contables.",
+    "23. Responsabilidades del custodio de bienes en un comando policial.",
+    "24. Examen especial a las transferencias de recursos a destacamentos rurales.",
+    "25. Auditoría de caja chica y fondos rotativos en unidades operativas.",
+    "26. Evaluación de riesgos de corrupción en el área de compras públicas policiales.",
+    "27. Cumplimiento de la normativa de control de combustibles y lubricantes.",
+    "28. Revisión de viáticos y gastos de viaje del personal en comisión de servicios.",
+    "29. Análisis de cuentas por cobrar de multas y especies valoradas.",
+    "30. Determinación de responsabilidades civiles y administrativas (Ley de la Contraloría).",
+    "31. Control previo, concurrente y posterior en la administración policial.",
+    "32. Auditoría de sistemas informáticos financieros (e-SIGEF, SINFIP).",
+    "33. Evaluación de la legalidad de las órdenes de pago y comprobantes de egreso.",
+    "34. Análisis de la deuda flotante y cuentas por pagar en un comando provincial.",
+    "35. Auditoría forense en la detección de desvío de fondos.",
+    "36. Aplicación de las NICSP en la presentación de estados financieros.",
+    "37. Arqueo de fondos de la tesorería de una unidad: procedimiento y papeles de trabajo.",
+    "38. Verificación de la legalidad de las retenciones en la fuente y del IVA.",
+    "39. Evaluación del plan anual de contrataciones (PAC) y su cumplimiento.",
+    "40. Auditoría de la gestión de recursos humanos: contratos, horas extras y rol de pagos.",
+    "41. Informe de auditoría operativa sobre el mantenimiento de cuarteles.",
+    "42. Análisis de propiedad, planta y equipo (activos fijos) en los estados financieros.",
+    "43. Examen de los registros de ingresos por tasas y derechos.",
+    "44. Conciliación de valores recaudados por matriculación y revisión vehicular.",
+    "45. Auditoría de los procesos de baja de bienes y remate de chatarra.",
+    "46. Metodología para evaluar el riesgo de auditoría en un comando distrital.",
+    "47. Papeles de trabajo: índices, marcas y referencias según normas de auditoría gubernamental.",
+    "48. Ética del auditor público y código de conducta de la Contraloría.",
+    "49. Control de calidad en las firmas de auditoría que evalúan a la Policía.",
+    "50. Aplicación de las Normas de Auditoría Gubernamental (NAG) en el examen de balances."
+  ],
+  casoBanco: {
+    enunciado: "Usted es auditor de la Contraloría asignado a la Dirección de Logística de la Policía Nacional. Se detectaron presuntos sobreprecios en la adquisición de 200 chalecos antibalas mediante procedimiento de menor cuantía. Los expedientes presentan tres cotizaciones, pero dos no cumplen requisitos mínimos. Además, el pago se realizó antes de la entrega total.",
+    preguntas: [
+      "1. Identifique las posibles irregularidades y los principios de la LOSNCP que podrían estar vulnerados.",
+      "2. Describa los procedimientos de auditoría que aplicaría para confirmar los sobreprecios.",
+      "3. ¿Qué tipo de responsabilidades podrían derivarse y cómo se trasladan a la Contraloría?"
+    ],
+    solucion: "1. Vulneración de los principios de transparencia, igualdad y concurrencia (cotizaciones no válidas, posible direccionamiento). El pago anticipado sin recepción total vulnera los principios de eficiencia y legalidad de la LOSNCP.\n2. Pruebas: comparación de precios de mercado con cotizaciones reales (benchmarking); verificación de documentación de los oferentes rechazados; inspección física del inventario; análisis de la orden de pago vs. acta de recepción definitiva; entrevista al administrador del contrato. Papeles de trabajo con índices y marcas.\n3. Responsabilidad administrativa (funcionario que aprobó la adjudicación sin verificar requisitos), responsabilidad civil culposa (perjuicio económico del pago anticipado), posibles indicios penales si se comprueba intención. El informe de auditoría se remite al delegado provincial de la Contraloría."
+  },
+  casoMuestra: {
+    enunciado: "La Policía Nacional ejecutó un proyecto de videovigilancia en Quito por $150.000. El contrato fue adjudicado a una empresa luego de un proceso de cotización. El auditor debe revisar la ejecución presupuestaria y la entrega efectiva.",
+    preguntas: [
+      "1. ¿Qué principios de la LOSNCP debe verificarse en este proceso de contratación?",
+      "2. Mencione las pruebas de auditoría para confirmar que los equipos instalados corresponden al contrato.",
+      "3. ¿Qué implicaciones tiene para el administrador del contrato si no se realizaron las pruebas de aceptación?"
+    ],
+    solucion: "1. Transparencia (publicidad de la convocatoria), concurrencia (participación de varios oferentes), igualdad (evaluación objetiva) y eficiencia (relación costo-beneficio).\n2. Inspección física de equipos y cotejo con especificaciones técnicas; pruebas de funcionamiento con personal técnico; revisión de actas de entrega-recepción; análisis de pagos parciales vs. hitos de ejecución; verificación de garantías técnicas.\n3. Responsabilidad administrativa por omisión del deber de supervisión y responsabilidad civil culposa si los equipos no operan (perjuicio económico al Estado)."
+  },
+  promptExtra: "Énfasis en auditoría gubernamental ecuatoriana, normativa de la Contraloría General del Estado, LOSNCP y control interno en la Policía Nacional."
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+   USUARIOS AUTORIZADOS
+   Para añadir un usuario: push({ cedula, carrera })
+   La carrera debe coincidir exactamente con la clave en CARRERAS.
+══════════════════════════════════════════════════════════════════════ */
+const USUARIOS = [
+  /* ── Salud ── */
+  { cedula: "1722222222", carrera: "Medicina General" },
+  { cedula: "0965478321", carrera: "Medicina General" },
+  { cedula: "1856741230", carrera: "Medicina General" },
+  { cedula: "1122345872", carrera: "Medicina General" },
+  { cedula: "1314156749", carrera: "Medicina General" },
+  { cedula: "1754321098", carrera: "Enfermería" },
+  { cedula: "1712345678", carrera: "Enfermería" },
+  { cedula: "1733333333", carrera: "Enfermería" },
+  { cedula: "1744444444", carrera: "Odontología" },
+  /* ── Social ── */
+  { cedula: "1755555555", carrera: "Psicología" },
+  { cedula: "1703456789", carrera: "Psicología" },
+  { cedula: "1766666666", carrera: "Psicología Forense" },
+  { cedula: "1703456790", carrera: "Psicología Forense" },
+  { cedula: "1123456780", carrera: "Comunicación Social" },
+  { cedula: "1812345678", carrera: "Comunicación Social" },
+  /* ── Jurídica ── */
+  { cedula: "1788888888", carrera: "Derecho" },
+  { cedula: "1702938475", carrera: "Abogado" },
+  { cedula: "1804561237", carrera: "Abogado" },
+  { cedula: "0956321874", carrera: "Abogado" },
+  { cedula: "1723489056", carrera: "Abogado" },
+  { cedula: "1456789023", carrera: "Abogado" },
+  { cedula: "1302876541", carrera: "Abogado" },
+  { cedula: "1109876543", carrera: "Abogado" },
+  { cedula: "1788888889", carrera: "Abogado" },
+  { cedula: "1745829016", carrera: "Abogado" },
+  { cedula: "1788888890", carrera: "Jurisprudencia" },
+  /* ── Ingenierías ── */
+  { cedula: "1711111111", carrera: "Ingeniería Civil" },
+  { cedula: "1712222222", carrera: "Ingeniería Industrial" },
+  { cedula: "0802466110", carrera: "Ingeniería Mecánica" },
+  { cedula: "1710280942", carrera: "Ingeniería Mecánica" },
+  { cedula: "1713333333", carrera: "Ingeniería Automotriz" },
+  /* ── Ingeniería Ambiental (NUEVA) ── */
+  { cedula: "0734819265", carrera: "Ingeniería Ambiental" },
+  { cedula: "1856293047", carrera: "Ingeniería Ambiental" },
+  { cedula: "0921746583", carrera: "Ingeniería Ambiental" },
+  { cedula: "1347028956", carrera: "Ingeniería Ambiental" },
+  { cedula: "0683914725", carrera: "Ingeniería Ambiental" },
+  /* ── Administrativa ── */
+  { cedula: "1722222223", carrera: "Administración de Empresas" },
+  { cedula: "1733333334", carrera: "Ingeniería Informática" },
+  { cedula: "0967890123", carrera: "Ingeniería Informática" },
+  { cedula: "1744444445", carrera: "Arquitectura" },
+  { cedula: "0928374651", carrera: "Contabilidad y Auditoría" },
+  { cedula: "1309876542", carrera: "Contabilidad y Auditoría" },
+  { cedula: "1804567892", carrera: "Contabilidad y Auditoría" },
+  { cedula: "1456789123", carrera: "Contabilidad y Auditoría" },
+  { cedula: "0955123478", carrera: "Contabilidad y Auditoría" }
+];
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOTOR DE LA APLICACIÓN (COMPLETAMENTE GENÉRICO)
+══════════════════════════════════════════════════════════════════════ */
+const App = {
+  currentUser: null,
+  currentCase: null,
+  modelAnswerVisible: false,
+
+  /* ── Inicialización ── */
+  init() {
+    this.buildCarreraSelect();
+    this.bindEvents();
+    this.buildTabEvents();
+    this.showAcceso();
+  },
+
+  buildCarreraSelect() {
+    const sel = document.getElementById('carreraSelect');
+    // Agrupar por área
+    const grupos = {};
+    for (const [nombre, data] of Object.entries(CARRERAS)) {
+      if (!grupos[data.area]) grupos[data.area] = [];
+      grupos[data.area].push(nombre);
+    }
+    for (const [area, carreras] of Object.entries(grupos)) {
+      const og = document.createElement('optgroup');
+      og.label = `── ${area} ──`;
+      for (const c of carreras) {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        og.appendChild(opt);
+      }
+      sel.appendChild(og);
+    }
+  },
+
+  bindEvents() {
+    document.getElementById('btnIngresar').addEventListener('click', () => this.login());
+    document.getElementById('btnMuestra').addEventListener('click', () => this.mostrarMuestra());
+    document.getElementById('closeModalBtn').addEventListener('click', () => this.cerrarModal());
+    document.getElementById('modalMuestra').addEventListener('click', e => {
+      if (e.target === document.getElementById('modalMuestra')) this.cerrarModal();
+    });
+    document.getElementById('cedulaInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') this.login();
+    });
+    document.getElementById('btnLogout').addEventListener('click', () => this.logout());
+    document.getElementById('btnCasoBanco').addEventListener('click', () => this.loadCaseFromBank());
+    document.getElementById('btnCasoIA').addEventListener('click', () => this.generateCaseWithAI());
+    document.getElementById('btnVerRespuesta').addEventListener('click', () => this.showModelAnswer());
+    document.getElementById('btnRevisar').addEventListener('click', () => this.reviewMyAnswer());
+    // Informe
+    document.getElementById('btnGenInforme').addEventListener('click', () => this.generarInforme());
+    document.getElementById('btnLimpiarInforme').addEventListener('click', () => this.limpiarInforme());
+    document.getElementById('btnCopiarLatex').addEventListener('click', () => this.copiarLatex());
+    document.getElementById('btnDescargarLatex').addEventListener('click', () => this.descargarLatex());
+    document.getElementById('btnOverleaf').addEventListener('click', () => this.abrirOverleaf());
+  },
+
+  buildTabEvents() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+  },
+
+  /* ── Auth ── */
+  login() {
+    const cedula = document.getElementById('cedulaInput').value.trim();
+    const carrera = document.getElementById('carreraSelect').value;
+    const err = document.getElementById('loginError');
+    err.textContent = '';
+    if (!cedula || !carrera) { err.textContent = 'Complete todos los campos.'; return; }
+    const found = USUARIOS.find(u => u.cedula === cedula && u.carrera === carrera);
+    if (found) { this.currentUser = found; this.showPanel(); }
+    else { err.textContent = 'Cédula o carrera no autorizada. Contacte a Multiestudios.'; }
+  },
+
+  logout() { this.currentUser = null; this.showAcceso(); },
+
+  showAcceso() {
+    document.getElementById('accessScreen').style.display = 'flex';
+    document.getElementById('mainPanel').style.display = 'none';
+    document.getElementById('cedulaInput').value = '';
+    document.getElementById('carreraSelect').value = '';
+    document.getElementById('loginError').textContent = '';
+  },
+
+  showPanel() {
+    document.getElementById('accessScreen').style.display = 'none';
+    document.getElementById('mainPanel').style.display = 'block';
+    const data = CARRERAS[this.currentUser.carrera];
+    document.getElementById('careerDisplay').textContent = this.currentUser.carrera;
+    document.getElementById('careerTemarioTitle').textContent = this.currentUser.carrera;
+    document.getElementById('areaBadge').textContent = `Área: ${data.area}`;
+    this.renderTemario();
+    this.resetCase();
+    document.getElementById('userAnswer').value = '';
+    document.getElementById('modelAnswerBox').style.display = 'none';
+    document.getElementById('feedbackBox').style.display = 'none';
+    // Reset tabs
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.querySelectorAll('.tab-pane').forEach((p,i) => p.classList.toggle('active', i===0));
+  },
+
+  /* ── Temario ── */
+  renderTemario(filtro = '') {
+    const data = CARRERAS[this.currentUser?.carrera];
+    if (!data) return;
+    const items = data.temario.filter(t => t.toLowerCase().includes(filtro.toLowerCase()));
+    document.getElementById('temarioContainer').innerHTML =
+      items.map(t => `<div class="temario-item">${t}</div>`).join('');
+  },
+
+  filterTemas() {
+    this.renderTemario(document.getElementById('searchTema').value);
+  },
+
+  /* ── Casos ── */
+  resetCase() {
+    this.currentCase = null;
+    this.modelAnswerVisible = false;
+    document.getElementById('caseContent').innerHTML = 'Presione "Crear caso práctico" para comenzar.';
+    document.getElementById('modelAnswerBox').style.display = 'none';
+    document.getElementById('feedbackBox').style.display = 'none';
+  },
+
+  loadCaseFromBank() {
+    const data = CARRERAS[this.currentUser?.carrera];
+    if (!data?.casoBanco) {
+      document.getElementById('caseContent').innerHTML = 'No hay caso precargado. Use "Nuevo caso con IA".';
+      return;
+    }
+    this.currentCase = data.casoBanco;
+    this.displayCase(data.casoBanco);
+  },
+
+  displayCase(c) {
+    document.getElementById('caseContent').innerHTML =
+      `<p><strong>Contexto operacional:</strong></p><p>${c.enunciado}</p>
+       <p><strong>Preguntas:</strong></p>
+       <ol>${c.preguntas.map(p => `<li>${p}</li>`).join('')}</ol>`;
+    document.getElementById('modelAnswerBox').style.display = 'none';
+    document.getElementById('feedbackBox').style.display = 'none';
+    this.modelAnswerVisible = false;
+  },
+
+  showModelAnswer() {
+    if (!this.currentCase) { alert('Primero cree un caso práctico.'); return; }
+    document.getElementById('modelAnswerContent').innerHTML = `<pre>${this.currentCase.solucion}</pre>`;
+    document.getElementById('modelAnswerBox').style.display = 'block';
+    document.getElementById('feedbackBox').style.display = 'none';
+    this.modelAnswerVisible = true;
+  },
+
+  sanitizeJSON(str) {
+    let r = '', inS = false, esc = false;
+    for (const c of str) {
+      if (esc) { r += c; esc = false; continue; }
+      if (c === '\\' && inS) { esc = true; r += c; continue; }
+      if (c === '"') { inS = !inS; r += c; continue; }
+      if (inS && c.charCodeAt(0) < 32) {
+        r += c==='\n'?'\\n':c==='\r'?'\\r':c==='\t'?'\\t':('\\u'+('000'+c.charCodeAt(0).toString(16)).slice(-4));
+      } else r += c;
+    }
+    return r;
+  },
+
+  async callAI(messages, temperature = 0.5, maxTokens = 8000) {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, temperature, max_tokens: maxTokens })
+    });
+    if (!resp.ok) throw new Error(`Error ${resp.status}: ${await resp.text()}`);
+    const data = await resp.json();
+    return data.choices[0].message.content;
+  },
+
+  async generateCaseWithAI() {
+    if (!this.currentUser) return;
+    const data = CARRERAS[this.currentUser.carrera];
+    const temas = data?.temario || [];
+    if (!temas.length) return;
+    const tema = temas[Math.floor(Math.random() * temas.length)];
+    const extraInstr = data.promptExtra || '';
+
+    document.getElementById('caseLoading').style.display = 'block';
+    document.getElementById('caseContent').innerHTML = '';
+    try {
+      const prompt = `Eres un experto evaluador de la Policía Nacional del Ecuador especializado en ${this.currentUser.carrera}.
+Genera un caso práctico enfocado EXCLUSIVAMENTE en el siguiente tema del temario oficial:
+
+"${tema}"
+
+${extraInstr ? 'Contexto adicional: ' + extraInstr : ''}
+
+INSTRUCCIONES ESTRICTAS ANTI-ALUCINACIONES:
+1. NO inventes números de artículos de leyes (COIP, LOSNCP, NEC, INEN, etc.). Si necesitas referenciar una norma, describe el principio o indica "consultar la normativa vigente".
+2. NO hagas preguntas sobre montos de dinero, adquisiciones ni contratación pública.
+3. Integra la doctrina policial de AUTOGESTIÓN y SEGURIDAD OPERATIVA en el enunciado, las preguntas y la solución.
+4. El contexto debe ser realista y situado en el Ecuador (geografía, clima, instituciones reales como Fiscalía, Contraloría, MSP, etc.).
+5. Si no recuerdas un dato exacto, describe el procedimiento general o indica que debe consultarse la fuente oficial.
+
+Formato de respuesta: SOLO un objeto JSON válido (sin markdown, sin texto extra) con exactamente estas claves:
+{
+  "enunciado": "descripción del caso operacional",
+  "preguntas": ["pregunta 1", "pregunta 2", "pregunta 3"],
+  "solucion": "respuesta técnica detallada de máximo 500 palabras"
+}`;
+
+      const raw = await this.callAI([
+        { role: 'system', content: 'Generador de casos prácticos para la Policía Nacional. Responde SOLO con JSON válido. Sin markdown. Sin inventar leyes o normas.' },
+        { role: 'user', content: prompt }
+      ], 0.5, 8000);
+
+      let js = raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/i,'');
+      const fb = js.indexOf('{'); if (fb > 0) js = js.substring(fb);
+      js = this.sanitizeJSON(js);
+      const caseData = JSON.parse(js);
+      if (!caseData.enunciado || !caseData.preguntas || !caseData.solucion) throw new Error('JSON incompleto');
+      this.currentCase = caseData;
+      this.displayCase(caseData);
+    } catch(e) {
+      document.getElementById('caseContent').innerHTML = `<p style="color:red;">Error al generar caso: ${e.message}</p>`;
+      this.currentCase = null;
+    } finally {
+      document.getElementById('caseLoading').style.display = 'none';
+    }
+  },
+
+  async reviewMyAnswer() {
+    if (!this.currentCase) { alert('No hay caso práctico activo.'); return; }
+    const userText = document.getElementById('userAnswer').value.trim();
+    if (!userText) { alert('Escriba su respuesta antes de solicitar revisión.'); return; }
+    if (!this.modelAnswerVisible) { alert('Primero haga clic en "Ver respuesta técnica".'); return; }
+
+    document.getElementById('feedbackLoading').style.display = 'block';
+    document.getElementById('feedbackBox').style.display = 'none';
+    try {
+      const prompt = `Eres un instructor evaluador de la Policía Nacional del Ecuador especializado en ${this.currentUser.carrera}.
+
+Caso práctico:
+${this.currentCase.enunciado}
+
+Preguntas:
+${this.currentCase.preguntas.join('\n')}
+
+Respuesta modelo:
+${this.currentCase.solucion}
+
+Respuesta del aspirante:
+${userText}
+
+INSTRUCCIONES PARA LA EVALUACIÓN:
+- Señala aciertos y errores concretos con tono constructivo y profesional.
+- Si el aspirante cita números de artículos, normas o jurisprudencia que parezcan inventados, indícalo claramente y recomienda no inventar referencias.
+- Tú NUNCA debes inventar números de leyes, artículos o normas. Usa frases como "según la normativa vigente" o "de acuerdo con los principios de la LOSNCP".
+- Integra la doctrina policial (autogestión, seguridad operativa) en la retroalimentación cuando sea relevante.
+- Sugiere qué temas del temario oficial debería repasar el aspirante.
+- Máximo 500 palabras.`;
+
+      const fb = await this.callAI([
+        { role: 'system', content: 'Instructor evaluador. No inventes leyes ni normas. Sé constructivo y didáctico.' },
+        { role: 'user', content: prompt }
+      ], 0.7, 3000);
+      document.getElementById('feedbackContent').innerHTML = `<pre style="white-space:pre-wrap;">${fb}</pre>`;
+      document.getElementById('feedbackBox').style.display = 'block';
+    } catch(e) {
+      document.getElementById('feedbackContent').innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+      document.getElementById('feedbackBox').style.display = 'block';
+    } finally {
+      document.getElementById('feedbackLoading').style.display = 'none';
+    }
+  },
+
+  /* ── Modal muestra ── */
+  mostrarMuestra() {
+    const carreraVal = document.getElementById('carreraSelect').value;
+    const data = CARRERAS[carreraVal] || Object.values(CARRERAS)[0];
+    const caso = data.casoMuestra || data.casoBanco;
+    document.getElementById('muestraTitulo').textContent = `Caso Práctico de Muestra – ${carreraVal || 'Ejemplo'}`;
+    document.getElementById('muestraContent').innerHTML =
+      `<p><strong>Contexto operacional:</strong></p><p>${caso.enunciado}</p>
+       <p><strong>Preguntas:</strong></p>
+       <ol>${caso.preguntas.map(p=>`<li>${p}</li>`).join('')}</ol>
+       <p><strong>Respuesta técnica:</strong></p><pre>${caso.solucion}</pre>
+       <p style="margin-top:1rem;font-size:.82rem;color:#555;"><em>Este caso de muestra integra la doctrina policial y evita referencias inventadas a leyes o normas.</em></p>`;
+    document.getElementById('modalMuestra').style.display = 'flex';
+  },
+
+  cerrarModal() { document.getElementById('modalMuestra').style.display = 'none'; },
+
+  /* ── Generador de informes LaTeX ── */
+  sanitizeLatex(code) {
+    code = code.replace(/(?<!\\)_(?!\{)/g, '\\_');
+    code = code.replace(/(?<!\\)&/g, '\\&');
+    return code;
+  },
+
+  async generarInforme() {
+    const caso = document.getElementById('infCaso').value.trim();
+    const respuesta = document.getElementById('infRespuesta').value.trim();
+    if (!caso || !respuesta) { alert('Complete el caso práctico y la respuesta técnica.'); return; }
+    const carrera = this.currentUser?.carrera || 'la especialidad';
+
+    document.getElementById('infLoading').style.display = 'block';
+    document.getElementById('infOutput').style.display = 'none';
+    document.getElementById('infInitial').style.display = 'none';
+
+    const systemPrompt = `Eres un tutor experto en preparación de aspirantes a especialistas de la Policía Nacional en el área de ${carrera}. Tu tarea es generar un INFORME DE PROCESO COGNITIVO profesional en formato LaTeX (listo para Overleaf) a partir de un caso práctico y su respuesta técnica.
+
+El informe debe seguir EXACTAMENTE esta estructura:
+1. Caso Práctico
+2. DESCONSTRUCCIÓN DEL ESCENARIO (Variables críticas)
+3. ACTIVACIÓN DE CONOCIMIENTOS PREVIOS (Marcos mentales necesarios)
+4. RESOLUCIÓN PASO A PASO DE CADA PREGUNTA (Itinerario cognitivo)
+5. JUSTIFICACIÓN COGNITIVA DE LA RESPUESTA TÉCNICA
+6. LECCIONES APRENDIDAS Y ESQUEMA MENTAL TRANSFERIBLE
+
+Requisitos LaTeX:
+- Documento completo con preámbulo (clase article, paquetes: babel[spanish], fontenc[T1], inputenc[utf8], geometry, enumitem, tcolorbox, hyperref).
+- La respuesta técnica original debe ir en un recuadro tcolorbox.
+- Escapa TODOS los caracteres especiales fuera de entornos verbatim: \\_  \\&  \\%  \\$  \\#  \\{  \\}
+- Llaves balanceadas en todos los comandos.
+- Sin código a medias.
+- Solo código LaTeX (de \\documentclass a \\end{document}), sin texto fuera del documento.
+
+ANTI-ALUCINACIONES: No inventes leyes, normativas, procedimientos o datos no mencionados en el caso. Si tienes duda, describe el principio general.
+
+Caso práctico:
+${caso}
+
+Respuesta técnica:
+${respuesta}`;
+
+    try {
+      const raw = await this.callAI([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: 'Genera el informe LaTeX ahora.' }
+      ], 0.3, 8000);
+
+      let latex = raw.trim()
+        .replace(/^```latex\s*/i,'').replace(/\s*```$/i,'');
+      latex = this.sanitizeLatex(latex);
+      document.getElementById('infOutput').textContent = latex;
+      document.getElementById('infOutput').style.display = 'block';
+    } catch(e) {
+      alert('Error al generar informe: ' + e.message);
+      document.getElementById('infInitial').style.display = 'block';
+    } finally {
+      document.getElementById('infLoading').style.display = 'none';
+    }
+  },
+
+  limpiarInforme() {
+    document.getElementById('infCaso').value = '';
+    document.getElementById('infRespuesta').value = '';
+    document.getElementById('infOutput').style.display = 'none';
+    document.getElementById('infInitial').style.display = 'block';
+  },
+
+  copiarLatex() {
+    const content = document.getElementById('infOutput').textContent;
+    if (!content) return;
+    navigator.clipboard.writeText(content).then(() => alert('Código LaTeX copiado.')).catch(e => alert('Error: '+e));
+  },
+
+  descargarLatex() {
+    const content = document.getElementById('infOutput').textContent;
+    if (!content) return;
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([content], {type:'text/plain'})),
+      download: 'informe_cognitivo.tex'
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  },
+
+  abrirOverleaf() {
+    const content = document.getElementById('infOutput').textContent;
+    if (!content) return;
+    window.open(`https://www.overleaf.com/docs?snip=${btoa(unescape(encodeURIComponent(content)))}`, '_blank');
+  }
+};
+
+// Exponer filterTemas al HTML inline
+window.App = App;
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>

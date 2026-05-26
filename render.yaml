@@ -1,0 +1,15 @@
+# ══════════════════════════════════════════════════════
+#  Configuración para despliegue en Render.com
+#  Render lee este archivo automáticamente si existe
+# ══════════════════════════════════════════════════════
+services:
+  - type: web
+    name: multiestudios
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false        # Render pedirá que lo ingreses manualmente
+      - key: PORT
+        value: 3000
