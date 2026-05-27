@@ -1900,19 +1900,23 @@ const App = {
     document.getElementById('caseLoading').style.display = 'block';
     document.getElementById('caseContent').innerHTML = '';
     try {
-      const prompt = `Eres un experto evaluador de la Policía Nacional del Ecuador especializado en ${this.currentUser.carrera}.
+      const prompt = `Eres un diseñador de casos prácticos para la Policía Nacional del Ecuador.
+El aspirante es un ESPECIALISTA TÉCNICO en ${this.currentUser.carrera} que trabaja DENTRO de la institución policial resolviendo problemas reales de su área. NO es perito judicial, NO actúa en juicios ni elabora informes periciales para tribunales. Su rol es aplicar su conocimiento técnico para resolver situaciones del día a día institucional: operativos, mantenimiento, atención, gestión, prevención y apoyo a la misión policial.
+
 Genera un caso práctico enfocado EXCLUSIVAMENTE en el siguiente tema del temario oficial:
 
 "${tema}"
 
 ${extraInstr ? 'Contexto adicional: ' + extraInstr : ''}
 
-INSTRUCCIONES ESTRICTAS ANTI-ALUCINACIONES:
-1. NO inventes números de artículos de leyes (COIP, LOSNCP, NEC, INEN, etc.). Si necesitas referenciar una norma, describe el principio o indica "consultar la normativa vigente".
-2. NO hagas preguntas sobre montos de dinero, adquisiciones ni contratación pública.
-3. Integra la doctrina policial de AUTOGESTIÓN y SEGURIDAD OPERATIVA en el enunciado, las preguntas y la solución.
-4. El contexto debe ser realista y situado en el Ecuador (geografía, clima, instituciones reales como Fiscalía, Contraloría, MSP, etc.).
-5. Si no recuerdas un dato exacto, describe el procedimiento general o indica que debe consultarse la fuente oficial.
+INSTRUCCIONES ESTRICTAS:
+1. El caso debe situar al aspirante como especialista resolviendo un problema práctico DENTRO de la Policía Nacional (en un cuartel, dispensario, taller, unidad operativa, destacamento, etc.). NUNCA como perito en un juicio.
+2. Las preguntas deben pedir soluciones técnicas concretas, planes de acción, diagnósticos, procedimientos o recomendaciones propias de su especialidad aplicada al contexto policial.
+3. NO inventes números de artículos de leyes (COIP, LOSNCP, NEC, INEN, etc.). Si necesitas referenciar una norma, describe el principio o indica "consultar la normativa vigente".
+4. NO hagas preguntas sobre montos de dinero, adquisiciones ni contratación pública.
+5. Integra la doctrina policial de AUTOGESTIÓN y SEGURIDAD OPERATIVA en el enunciado, las preguntas y la solución.
+6. El contexto debe ser realista y situado en el Ecuador (geografía, clima, instituciones reales).
+7. Si no recuerdas un dato exacto, describe el procedimiento general o indica que debe consultarse la fuente oficial.
 
 Formato de respuesta: SOLO un objeto JSON válido (sin markdown, sin texto extra) con exactamente estas claves:
 {
@@ -1922,7 +1926,7 @@ Formato de respuesta: SOLO un objeto JSON válido (sin markdown, sin texto extra
 }`;
 
       const raw = await this.callAI([
-        { role: 'system', content: 'Generador de casos prácticos para la Policía Nacional. Responde SOLO con JSON válido. Sin markdown. Sin inventar leyes o normas.' },
+        { role: 'system', content: 'Diseñador de casos prácticos para especialistas técnicos de la Policía Nacional. El aspirante NO es perito judicial; es un profesional que resuelve problemas técnicos dentro de la institución. Responde SOLO con JSON válido. Sin markdown. Sin inventar leyes o normas.' },
         { role: 'user', content: prompt }
       ], 0.5, 8000);
 
@@ -1952,6 +1956,8 @@ Formato de respuesta: SOLO un objeto JSON válido (sin markdown, sin texto extra
     try {
       const prompt = `Eres un instructor evaluador de la Policía Nacional del Ecuador especializado en ${this.currentUser.carrera}.
 
+CONTEXTO: El aspirante es un ESPECIALISTA TÉCNICO en ${this.currentUser.carrera} que resuelve problemas prácticos DENTRO de la Policía Nacional. NO es perito judicial. Evalúa su capacidad para aplicar conocimientos técnicos en situaciones reales del entorno policial.
+
 Caso práctico:
 ${this.currentCase.enunciado}
 
@@ -1965,7 +1971,9 @@ Respuesta del aspirante:
 ${userText}
 
 INSTRUCCIONES PARA LA EVALUACIÓN:
+- Evalúa si el aspirante demuestra dominio técnico de su especialidad aplicado al contexto policial.
 - Señala aciertos y errores concretos con tono constructivo y profesional.
+- Si el aspirante asume un rol de perito judicial o redacta como si estuviera en un juicio, indícale que su rol es el de especialista técnico institucional, no perito forense.
 - Si el aspirante cita números de artículos, normas o jurisprudencia que parezcan inventados, indícalo claramente y recomienda no inventar referencias.
 - Tú NUNCA debes inventar números de leyes, artículos o normas. Usa frases como "según la normativa vigente" o "de acuerdo con los principios de la LOSNCP".
 - Integra la doctrina policial (autogestión, seguridad operativa) en la retroalimentación cuando sea relevante.
@@ -1973,7 +1981,7 @@ INSTRUCCIONES PARA LA EVALUACIÓN:
 - Máximo 500 palabras.`;
 
       const fb = await this.callAI([
-        { role: 'system', content: 'Instructor evaluador. No inventes leyes ni normas. Sé constructivo y didáctico.' },
+        { role: 'system', content: 'Instructor evaluador de especialistas técnicos de la Policía Nacional. El aspirante resuelve problemas prácticos institucionales, NO actúa como perito judicial. No inventes leyes ni normas. Sé constructivo y didáctico.' },
         { role: 'user', content: prompt }
       ], 0.7, 3000);
       document.getElementById('feedbackContent').innerHTML = `<pre style="white-space:pre-wrap;">${fb}</pre>`;
@@ -2020,7 +2028,7 @@ INSTRUCCIONES PARA LA EVALUACIÓN:
     document.getElementById('infOutput').style.display = 'none';
     document.getElementById('infInitial').style.display = 'none';
 
-    const systemPrompt = `Eres un tutor experto en preparación de aspirantes a especialistas de la Policía Nacional en el área de ${carrera}. Tu tarea es generar un INFORME DE PROCESO COGNITIVO profesional en formato LaTeX (listo para Overleaf) a partir de un caso práctico y su respuesta técnica.
+    const systemPrompt = `Eres un tutor experto en preparación de aspirantes a especialistas de la Policía Nacional en el área de ${carrera}. El aspirante es un ESPECIALISTA TÉCNICO que resuelve problemas prácticos DENTRO de la institución policial, NO un perito judicial. Tu tarea es generar un INFORME DE PROCESO COGNITIVO profesional en formato LaTeX (listo para Overleaf) a partir de un caso práctico y su respuesta técnica. El informe debe mostrar el razonamiento técnico-institucional del especialista, no el de un perito forense.
 
 El informe debe seguir EXACTAMENTE esta estructura:
 1. Caso Práctico
